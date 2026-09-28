@@ -16,6 +16,7 @@ import {
 } from "@browser/functions/keybinds";
 import { SearchEngineRegistry, type SearchEngine } from "@apis/searchEngines";
 import { resolvePath } from "@utils/basepath";
+import { persistHomePage } from "./homeSettings";
 const settingsAPI = new SettingsAPI();
 const eventsAPI = new EventSystem();
 import { createIcons, icons } from "lucide";
@@ -1146,28 +1147,37 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (!homeSelect) return;
 
-    const savedUrl = (await settingsAPI.getItem("homeUrl")) || "default";
-    const savedCustomUrl = (await settingsAPI.getItem("homeCustomUrl")) || "";
+    const savedHomePage = (await settingsAPI.getItem("homePage")) || "";
+    const savedUrl = savedHomePage ? "custom" : "default";
 
     homeSelect.value = savedUrl;
-    if (homeCustomUrl) homeCustomUrl.value = savedCustomUrl;
+    if (homeCustomUrl) homeCustomUrl.value = savedHomePage;
 
     if (savedUrl === "custom") {
       homeCustomInput?.classList.remove("hidden");
     }
 
     homeSelect.addEventListener("change", async () => {
-      await settingsAPI.setItem("homeUrl", homeSelect.value);
-
       if (homeSelect.value === "custom") {
         homeCustomInput?.classList.remove("hidden");
       } else {
         homeCustomInput?.classList.add("hidden");
+        await persistHomePage(
+          "default",
+          "",
+          (homePage) => settingsAPI.setItem("homePage", homePage),
+          (homePage) => window.protocols.updateHomeProtocol(homePage),
+        );
       }
     });
 
     homeCustomUrl?.addEventListener("change", async () => {
-      await settingsAPI.setItem("homeCustomUrl", homeCustomUrl.value);
+      await persistHomePage(
+        "custom",
+        homeCustomUrl.value,
+        (homePage) => settingsAPI.setItem("homePage", homePage),
+        (homePage) => window.protocols.updateHomeProtocol(homePage),
+      );
     });
   }
 

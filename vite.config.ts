@@ -33,6 +33,46 @@ import { allowedHosts } from "./srv/vite/hosts";
 import { svgWrapperPlugin } from "./srv/vite/svg";
 import { relocatePagesPlugin } from "./srv/vite/relocate-pages";
 import { terbiumTappPlugin } from "./srv/vite/terbium-tapp";
+import { apocalypseRemotePlugin } from "./srv/vite/apoc";
+import { createBuildConfig, resolveSeed } from './srv/vite/build-config';
+import { buildConfigVirtualPlugin } from './srv/vite/build-config-virtual';
+import { createChunkNaming } from './srv/vite/chunk-names';
+import { coverIdentityPlugin } from './srv/vite/cover-identity';
+import { scrubPlugin } from './srv/vite/scrub';
+import { assertArtifactsPlugin } from './srv/vite/assert-artifacts';
+import { handoffTransformPlugin } from './srv/vite/handoff-transform';
+import { handoffPostCopyPlugin } from './srv/vite/handoff-postcopy';
+import { aggregateSwPlugin } from './srv/vite/aggregate-sw';
+import { pruneDevArtifactsPlugin } from './srv/vite/prune-dev-artifacts';
+import { landingSplitPlugin } from './srv/vite/landing-split';
+import { devWispPlugin } from './srv/vite/dev-wisp';
+import { breakInternalSchemePlugin } from './srv/vite/break-internal-scheme';
+import { coLocateAppPlugin } from './srv/vite/colocate-app';
+
+const __ddxSeed = resolveSeed();
+const __ddxBuildConfig = createBuildConfig(__ddxSeed);
+const __ddxChunkNaming = createChunkNaming(__ddxBuildConfig, __ddxSeed);
+if (process.env.NODE_ENV === 'production') {
+  console.log(`[ddx] build seed: ${__ddxSeed.slice(0, 8)}… → build ${__ddxBuildConfig.buildId}`);
+}
+
+const apocalypsePlugins =
+  process.env.APOCALYPSE_REMOTE === "1"
+    ? [
+        apocalypseRemotePlugin({
+          seed: process.env.APOCALYPSE_SEED ?? "daydream-remote-test",
+          repository: process.env.APOCALYPSE_REPOSITORY,
+          revision: process.env.APOCALYPSE_REVISION,
+          features: {
+            nameRandomization: true,
+            forbiddenStringReplacement: false,
+            filenameRandomization: true,
+            prototypeObfuscation: true,
+            urlCodec: true,
+          },
+        }),
+      ]
+    : [];
 
 export default defineConfig({
   base: "./",
@@ -41,6 +81,9 @@ export default defineConfig({
     CONTROLLER_EXPECTED_VERSION: JSON.stringify(__sjControllerVersion),
   },
   plugins: [
+    buildConfigVirtualPlugin(__ddxBuildConfig),
+    handoffTransformPlugin(__ddxBuildConfig),
+    coverIdentityPlugin(__ddxBuildConfig),
     tailwindcss(),
     prettyUrlsPlugin(),
     fontObfuscationPlugin(),
@@ -48,8 +91,14 @@ export default defineConfig({
     ViteMinifyPlugin(minifyConfig),
     //vitePluginBundleObfuscator(obfuscationConfig as any),
     relocatePagesPlugin(),
+    ...apocalypsePlugins,
     svgWrapperPlugin(),
     terbiumTappPlugin(),
+    handoffPostCopyPlugin(__ddxBuildConfig),
+    devWispPlugin(__ddxBuildConfig),
+    aggregateSwPlugin(__ddxBuildConfig),
+    landingSplitPlugin(__ddxBuildConfig),
+    pruneDevArtifactsPlugin(),
     {
       name: "strip-console-and-debugger",
       enforce: "post",
@@ -67,8 +116,11 @@ export default defineConfig({
 
         // Files in public/ and font runtime bypass terser — process them here
         // sw.js has a console polyfill that preserves warn/error, so we only
-        // strip the other console methods (drop_console would kill the polyfill)
-        const swPath = resolve(outDir, "sw.js");
+        // strip the other console methods (drop_console would kill the polyfill).
+        // NOTE: aggregate-sw plugin (which runs earlier in the "post" chain)
+        // may have already renamed dist/sw.js to the seeded cover worker
+        // filename — read from that path so console stripping still applies.
+        const swPath = resolve(outDir, __ddxBuildConfig.cover.worker);
         if (existsSync(swPath)) {
           const code = readFileSync(swPath, "utf-8");
           const result = await minify(code, {
@@ -132,6 +184,22 @@ export default defineConfig({
         }
       },
     },
+    // Scrub runs AFTER the strip-console terser pass above: terser
+    // constant-folds the base64 anti-reconstruction splices (e.g. `ba`+`re`)
+    // back into forbidden words, so the scrub (and its gate) must be the last
+    // thing to touch the SW / ob-fonts bytes.
+    scrubPlugin(__ddxBuildConfig, __ddxSeed),
+    assertArtifactsPlugin(__ddxBuildConfig, __ddxSeed),
+    // MUST be last: rewrites internal `ddx://` literals to `ddx:\u002f\u002f`
+    // (identical runtime value, no literal `://` for the static detector).
+    // Runs after the strip-console terser pass so the escapes are not
+    // normalized back to `/`.
+    breakInternalSchemePlugin(),
+    // MUST be last: co-locate the app asset graph under dist/app/ so the shell's
+    // relative refs resolve with no server delegation (static-servable + cleanly
+    // rippable). Runs after scrub/assert/strip-console have processed the files
+    // at their original root locations.
+    coLocateAppPlugin(__ddxBuildConfig),
   ],
   appType: "mpa",
   optimizeDeps: {
@@ -165,12 +233,11 @@ export default defineConfig({
         target: "http://localhost:8080",
         changeOrigin: true,
       },
-      "/wisp/": {
-        target: "ws://localhost:8080/wisp/",
-        changeOrigin: true,
-        ws: true,
-        rewrite: (path) => path.replace(/^\/wisp\//, ""),
-      },
+      // `/wisp/` is handled by `devWispPlugin` (attaches a wisp-js
+      // WebSocket server directly to Vite's HTTP server). Do NOT proxy it
+      // to :8080 — the proxy fires before the plugin's upgrade handler,
+      // and if nothing is listening on :8080 the socket closes with
+      // "Connection closed before receiving a handshake response".
       "/auth": {
         target: "http://localhost:8080",
         changeOrigin: true,
@@ -251,60 +318,10 @@ export default defineConfig({
     rollupOptions: {
       input: pageRoutes(),
       output: {
-        // Content hashes, not Math.random(). Random names changed on every
-        // build, so each deploy cold-cached every returning user and two
-        // builds could never be diffed. Content hashes are already opaque,
-        // so nothing is lost if the original intent was obfuscation.
-        entryFileNames: "[hash].js",
-        chunkFileNames: (chunk) => {
-          if (chunk.name === "vendor-modules") {
-            return `chunks/vendor-[hash].js`;
-          }
-          return `chunks/[hash].js`;
-        },
-        assetFileNames: (assetInfo) => {
-          if (
-            assetInfo.name?.endsWith(".woff2") ||
-            assetInfo.name?.endsWith(".ttf")
-          ) {
-            return `assets/${assetInfo.name}`;
-          }
-          const ext = assetInfo.name?.split(".").pop();
-          return `assets/[hash].${ext}`;
-        },
-        manualChunks(id) {
-          if (!id.includes("node_modules")) return;
-          // Heaviest singletons get their own chunks so the main entry
-          // doesn't have to wait for them and they cache independently.
-          if (id.includes("@mercuryworkshop/libcurl-transport"))
-            return "vendor-libcurl";
-          if (id.includes("@mercuryworkshop/epoxy-transport"))
-            return "vendor-epoxy";
-          if (
-            id.includes("@mercuryworkshop/scramjet") ||
-            id.includes("@mercuryworkshop/wisp-js") ||
-            id.includes("@mercuryworkshop/proxy-transports")
-          )
-            return "vendor-scramjet";
-          if (id.includes("node_modules/chii") || id.includes("node_modules/chobitsu"))
-            return "vendor-chii";
-          if (id.includes("node_modules/eruda")) return "vendor-eruda";
-          if (id.includes("@dnd-kit")) return "vendor-dnd";
-          if (id.includes("@jaames/iro")) return "vendor-iro";
-          if (id.includes("@nightnetwork")) return "vendor-night";
-          if (
-            id.includes("node_modules/react") ||
-            id.includes("node_modules/scheduler") ||
-            id.includes("node_modules/react-dom")
-          )
-            return "vendor-react";
-          if (id.includes("node_modules/lucide")) return "vendor-lucide";
-          if (id.includes("@terbiumos/tfs")) return "vendor-tfs";
-          if (id.includes("libcurl.js")) return "vendor-libcurljs";
-          if (id.includes("fflate")) return "vendor-fflate";
-          if (id.includes("basecoat-css")) return "vendor-basecoat";
-          return "vendor";
-        },
+        entryFileNames: __ddxChunkNaming.entryFileNames,
+        chunkFileNames: __ddxChunkNaming.chunkFileNames,
+        assetFileNames: __ddxChunkNaming.assetFileNames,
+        manualChunks: __ddxChunkNaming.manualChunks,
       },
     },
     sourcemap: false,

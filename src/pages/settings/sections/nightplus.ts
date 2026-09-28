@@ -5,6 +5,7 @@ import { openModal } from "../components/modal";
 import { showInlineNotice } from "../components/notice";
 import { openSwitcherDropdown } from "../components/profileSwitcher";
 import { getEventsAPI, getProxy, getSettingsAPI, getHost } from "../data/host";
+import { coverIdentity } from "@core/shared/build-runtime";
 import type { SectionContext } from "./types";
 
 interface NightPlusState {
@@ -246,7 +247,7 @@ function renderSignedOut(container: HTMLElement): void {
   hero.className = "ddx-status-card is-locked";
   const logo = document.createElement("img");
   logo.src = "/res/logo.png";
-  logo.alt = "DDX";
+  logo.alt = coverIdentity().product;
   logo.width = 48;
   logo.height = 48;
   logo.style.borderRadius = "8px";
@@ -260,7 +261,7 @@ function renderSignedOut(container: HTMLElement): void {
   const meta = document.createElement("div");
   meta.className = "ddx-status-card-meta";
   meta.textContent =
-    "Get more from DDX — premium WISP servers, Mullvad VPN, unlimited profiles, premium proxy routing, NyxAI, and Cloudflare Turnstile auto-solver.";
+    `Get more from ${coverIdentity().product} — premium WISP servers, Mullvad VPN, unlimited profiles, premium proxy routing, NyxAI, and Cloudflare Turnstile auto-solver.`;
   body.appendChild(meta);
   const actions = document.createElement("div");
   actions.className = "ddx-status-card-actions";

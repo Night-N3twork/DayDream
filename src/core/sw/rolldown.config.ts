@@ -1,6 +1,10 @@
 import { defineConfig, type Plugin } from 'rolldown';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+	createBuildConfig,
+	resolveSeed
+} from '../../../srv/vite/build-config';
 
 const configDir = dirname(fileURLToPath(import.meta.url));
 
@@ -47,6 +51,39 @@ function urlImportPlugin(): Plugin {
 	};
 }
 
+/**
+ * Rolldown plugin: resolve `virtual:ddx-build-config` at SW build time by
+ * baking the current seed's BuildConfig into the SW bundle.
+ *
+ * The Vite side gets this virtual module through `buildConfigVirtualPlugin`,
+ * but the SW is a standalone rolldown build that never sees Vite's plugin
+ * pipeline. Without this shim, imports of `@core/shared/build-runtime`
+ * from SW code (e.g. `wisp.ts` for encoded WebSocket URLs) leave the
+ * default-import identifier unresolved and the SW throws at eval time
+ * with `virtual_ddx_build_config is not defined`.
+ *
+ * The seed is resolved the same way Vite resolves it: `DDX_BUILD_SEED`
+ * env if set, cached random otherwise. In practice the SW build runs
+ * before Vite, and both consume the same env var — so the config baked
+ * into the SW matches what Vite bakes into the app chunks.
+ */
+function buildConfigVirtualPlugin(): Plugin {
+	const VIRTUAL_ID = 'virtual:ddx-build-config';
+	const RESOLVED_ID = '\0' + VIRTUAL_ID;
+	return {
+		name: 'sw-build-config-virtual',
+		resolveId(source) {
+			if (source === VIRTUAL_ID) return RESOLVED_ID;
+			return null;
+		},
+		load(id) {
+			if (id !== RESOLVED_ID) return null;
+			const config = createBuildConfig(resolveSeed());
+			return `export default Object.freeze(${JSON.stringify(config)});`;
+		}
+	};
+}
+
 export default defineConfig({
 	input: resolve(configDir, 'index.ts'),
 	platform: 'browser',
@@ -55,5 +92,5 @@ export default defineConfig({
 		format: 'iife',
 		minify: true
 	},
-	plugins: [urlImportPlugin()]
+	plugins: [urlImportPlugin(), buildConfigVirtualPlugin()]
 });

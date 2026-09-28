@@ -7,6 +7,7 @@ import { openSwitcherDropdown, type SwitcherEntry } from "../components/profileS
 import { createAvatar, AVATAR_COLOR_PRESETS, AVATAR_ICON_PRESETS, resolveAppearance } from "../data/profileAppearance";
 import { createSubpage } from "../components/subpage";
 import { getProfiles, getSitePermissions, getHost } from "../data/host";
+import { coverIdentity } from "@core/shared/build-runtime";
 import type { ProfilesAPI } from "@apis/profiles/ProfilesAPI";
 import type { SectionContext } from "./types";
 import type { ProfileData, ProfileAppearance } from "../../../apis/profiles/types";
@@ -497,7 +498,7 @@ function renderImportSubpage(container: HTMLElement) {
       stack.className = "subpage-stack";
       stack.appendChild(createRow({
         label: "Import from profile JSON",
-        description: "Load a DDX profile export file.",
+        description: `Load a ${coverIdentity().product} profile export file.`,
         right: { kind: "button", text: "Choose file", onClick: () => { void importJson(); }, variant: "primary" },
       }));
       stack.appendChild(createRow({

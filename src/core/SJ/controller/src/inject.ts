@@ -26,6 +26,7 @@ import {
 	type TrackedHistoryState,
 } from "@mercuryworkshop/scramjet";
 
+
 const MessagePort_postMessage = MessagePort.prototype.postMessage;
 const postMessage = (
 	port: MessagePort,
@@ -332,6 +333,7 @@ class ExecutionContextWrapper {
 				codecDecode: this.init.codecDecode,
 			},
 		};
+
 		this.client = new ScramjetClient(this.global, {
 			context,
 			transport: this.transport,

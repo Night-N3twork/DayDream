@@ -22,6 +22,7 @@ import {
 	transportFetch,
 	type TransportKind
 } from '@core/shared/transport';
+import { buildConfig } from '@core/shared/build-runtime';
 
 interface ProxyInterface {
 	searchVar: string;
@@ -113,29 +114,50 @@ class Proxy implements ProxyInterface {
 					`[Proxy] Using Terbium-provided WISP: ${this.wispUrl}`
 				);
 				await this.settings.setItem('wisp', terbiumOverride);
+				await this.settings.setItem('wisp:encoded', false);
 			} else {
-				const savedWisp = await this.settings.getItem('wisp');
+				const savedWisp = await this.settings.getItem<string>('wisp');
+				// If the saved value is a same-origin URL that is NOT
+				// `/wisp/`, it's a stale encoded route from a previous
+				// build (the encoded route has been disabled). Discard it
+				// and re-probe.
+				let usable = savedWisp;
 				if (savedWisp) {
-					this.wispUrl = savedWisp;
+					try {
+						const parsed = new URL(savedWisp);
+						const sameOrigin = parsed.host === location.host;
+						if (sameOrigin && parsed.pathname !== '/wisp/') {
+							console.log(
+								`[Proxy] Discarding stale encoded WISP setting: ${savedWisp}`
+							);
+							usable = null;
+						}
+					} catch {
+						usable = null;
+					}
+				}
+				if (usable) {
+					this.wispUrl = usable;
 					console.log(`[Proxy] Using saved WISP: ${this.wispUrl}`);
 				} else {
-					const serverHasWisp = await this.checkServerWisp();
-					if (serverHasWisp) {
-						this.wispUrl =
-							(location.protocol === 'https:' ? 'wss' : 'ws') +
-							'://' +
-							location.host +
-							'/wisp/';
+					const probe = await this.probeServer();
+					if (probe) {
+						this.wispUrl = probe.url;
 						await this.settings.setItem('wisp', this.wispUrl);
+						await this.settings.setItem(
+							'wisp:encoded',
+							probe.encoded
+						);
 						console.log(
-							`[Proxy] Using server /wisp/ endpoint: ${this.wispUrl}`
+							`[Proxy] Using ${probe.encoded ? 'encoded' : 'plain'} WISP endpoint: ${this.wispUrl}`
 						);
 					} else {
 						const generated = this.generateWispServer();
 						this.wispUrl = generated;
 						await this.settings.setItem('wisp', generated);
+						await this.settings.setItem('wisp:encoded', false);
 						console.log(
-							`[Proxy] No /wisp/ on server, generated: ${generated}`
+							`[Proxy] No server WISP endpoint responded, defaulting to plain: ${generated}`
 						);
 					}
 				}
@@ -540,57 +562,104 @@ class Proxy implements ProxyInterface {
 		return out;
 	}
 
+	private encodedPath(): string {
+		const cfg = buildConfig();
+		return `${cfg.workspace}${cfg.cover.route}/${cfg.routes.assets}/${cfg.buildId}/`;
+	}
+
+	private canConnect(url: string): Promise<boolean> {
+		return new Promise(resolve => {
+			let done = false;
+			const finish = (ok: boolean) => {
+				if (done) return;
+				done = true;
+				clearTimeout(timer);
+				try {
+					ws.close();
+				} catch {
+					/* ignore */
+				}
+				resolve(ok);
+			};
+			const ws = new WebSocket(url);
+			const timer = setTimeout(() => finish(false), 5000);
+			ws.addEventListener('open', () => finish(true));
+			ws.addEventListener('error', () => finish(false));
+		});
+	}
+
+	/**
+	 * Probe the server for a working WISP endpoint. Encoded/framed route is
+	 * currently disabled (per operator request); we only try plain `/wisp/`
+	 * so failures propagate quickly instead of spamming setTransports().
+	 */
+	async probeServer(): Promise<{ url: string; encoded: boolean } | null> {
+		const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+		const origin = `${proto}//${location.host}`;
+		const url = `${origin}/wisp/`;
+		if (await this.canConnect(url)) {
+			console.log(`[Proxy] Server plain WISP endpoint found at ${url}`);
+			return { url, encoded: false };
+		}
+		console.log('[Proxy] No server-side WISP endpoint available');
+		return null;
+	}
+
+	/**
+	 * @deprecated Prefer `probeServer()`, which tests both endpoints and
+	 * returns metadata. Retained for callers that only want a boolean check
+	 * of the plain `/wisp/` endpoint.
+	 */
 	checkServerWisp(): Promise<boolean> {
 		const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
 		const url = `${proto}//${location.host}/wisp/`;
-
-		return new Promise(resolve => {
-			const timeout = setTimeout(() => {
-				ws.close();
-				resolve(false);
-			}, 5000);
-
-			const ws = new WebSocket(url);
-
-			ws.addEventListener('open', () => {
-				clearTimeout(timeout);
-				console.log(`[Proxy] Server /wisp/ endpoint found at ${url}`);
-				ws.close();
-				resolve(true);
-			});
-
-			ws.addEventListener('error', () => {
-				clearTimeout(timeout);
-				console.log('[Proxy] Server /wisp/ endpoint not available');
-				resolve(false);
-			});
+		return this.canConnect(url).then(ok => {
+			if (ok) console.log(`[Proxy] Server /wisp/ endpoint found at ${url}`);
+			else console.log('[Proxy] Server /wisp/ endpoint not available');
+			return ok;
 		});
 	}
 
 	generateWispServer(): string {
-		const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-		const length = 16 + Math.floor(Math.random() * 17);
-		let result = '';
-		for (let i = 0; i < length; i++) {
-			result += chars[Math.floor(Math.random() * chars.length)];
-		}
-		return `wss://${result}.nightwisp.me.cdn.cloudflare.net/wisp/`;
+		const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+		return `${proto}//${location.host}/wisp/`;
 	}
 
 	async swapWispServer(url?: string): Promise<void> {
-		const newWisp = url || this.generateWispServer();
+		let newWisp: string;
+		let encoded: boolean;
+		if (url) {
+			newWisp = url;
+			try {
+				const parsed = new URL(url);
+				encoded =
+					parsed.host === location.host &&
+					parsed.pathname === this.encodedPath();
+			} catch {
+				encoded = false;
+			}
+		} else {
+			newWisp = this.generateWispServer();
+			encoded = true;
+		}
 		this.wispUrl = newWisp;
 		await this.settings.setItem('wisp', newWisp);
-		console.log(`[Proxy] WISP server swapped to: ${newWisp}`);
+		await this.settings.setItem('wisp:encoded', encoded);
+		console.log(
+			`[Proxy] WISP server swapped to: ${newWisp} (encoded=${encoded})`
+		);
 		await this.setTransports();
 	}
 
 	private async buildTransportConfig() {
 		const cfg = await resolveTransportConfig(this.settings, () => {
 			if (this.wispUrl) return this.wispUrl;
-			const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-			return `${proto}://${location.host}/wisp/`;
+			return this.generateWispServer();
 		});
+
+		// Frame codec disabled — all WISP traffic uses plain frames on
+		// `/wisp/`. The seeded encoded route and `installWebSocketCodec`
+		// remain in the codebase for a future re-enable but are inert here.
 
 		const built = await buildTransport(cfg);
 		this.activeTransport = built.kind;

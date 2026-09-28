@@ -1,11 +1,12 @@
 
 import type { ExtensionContext } from '../../extfs/types';
 import { ChromeEvent } from '..';
+import { coverIdentity } from '@core/shared/build-runtime';
 
 /** Common throwing impl. Bound at class construction to keep `this.ctx` accessible. */
 function notSupported(api: string): never {
   throw new Error(
-    `chrome.${api} is a ChromeOS-only API not supported in DDX. ` +
+    `chrome.${api} is a ChromeOS-only API not supported in ${coverIdentity().product}. ` +
       `Detect availability via try/catch or by checking the manifest's "platform" field.`,
   );
 }

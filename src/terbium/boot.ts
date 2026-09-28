@@ -158,6 +158,8 @@ export async function bootInTerbium(): Promise<void> {
   try {
     const { installDownloads } = await import('./downloads');
     const { installIsland } = await import('./island');
+    const { installMediaIsland } = await import('./mediaIsland');
+    const { installNotifications } = await import('./notifications');
     if (typeof installDownloads === 'function') {
       installDownloads(bridge.tb);
     } else {
@@ -167,6 +169,12 @@ export async function bootInTerbium(): Promise<void> {
       installIsland(bridge.tb);
     } else {
       console.warn(TAG, 'island module loaded but installIsland not exported');
+    }
+    if (typeof installMediaIsland === 'function') {
+      installMediaIsland(bridge.tb);
+    }
+    if (typeof installNotifications === 'function') {
+      installNotifications(bridge.tb);
     }
   } catch (err) {
     console.warn(TAG, 'failed to install Terbium integrations:', err);

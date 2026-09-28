@@ -8,6 +8,8 @@ export interface DnsBackend {
   resolve(hostname: string): Promise<DnsResolveResult>;
 }
 
+import { coverIdentity } from '@core/shared/build-runtime';
+
 /**
  * Singleton DnsResolver. Holds a single registered backend; calls
  * `resolve()` on it when chrome.dns.resolve fires. If no backend
@@ -43,7 +45,7 @@ export class DnsResolver {
       throw new Error(
         'chrome.dns.resolve: No DNS backend registered. ' +
           'Register one via DnsResolver.setBackend(impl) — this typically ' +
-          'happens when DDX\'s internal network stack initializes.',
+          `happens when ${coverIdentity().product}'s internal network stack initializes.`,
       );
     }
     if (typeof hostname !== 'string' || !hostname) {

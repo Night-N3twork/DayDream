@@ -8,11 +8,24 @@
   <title>Settings</title>
   <script>
     self.__ddxBase = (function () {
-      var p = location.pathname;
-      var i = p.indexOf("/internal/");
-      if (i !== -1) return p.substring(0, i + 1);
-      return new URL("./", location.href).pathname;
-    })();
+        var p = location.pathname;
+        // Normalize: extensionless URLs without trailing slash are directories.
+        var last = p.split('/').pop() || '';
+        if (!p.endsWith('/') && last && !/\.[a-z0-9]+$/i.test(last)) {
+          p = p + '/';
+        }
+        var i = p.indexOf('/internal/');
+        var appBase = i !== -1
+          ? p.substring(0, i + 1)
+          : p.substring(0, p.lastIndexOf('/') + 1);
+        // <base> anchors every relative ref (script/link/modulepreload/img) to
+        // the page's real directory, so /app vs /app/ vs /app/x.html (and
+        // /app/internal/foo vs /app/internal/foo/) all resolve the same on ANY
+        // static host — no server-side redirect required.
+        var dirBase = p.substring(0, p.lastIndexOf('/') + 1);
+        document.write('<base href="' + dirBase + '">');
+        return appBase;
+      })();
   </script>
   <link rel="icon" type="image/png" href="../../res/logo.png" />
   <meta property="og:image" content="../../res/logo.png" />
@@ -343,13 +356,13 @@
               <p class="text-xs text-[var(--proto)] mb-3">
                 Set a custom home page URL (ddx://home/)
               </p>
-              <select id="homeSelect" data-component="dropdown" data-setting="homeUrl"
+              <select id="homeSelect" data-component="dropdown" data-setting="homePage"
                 class="w-full rounded-lg bg-[var(--bg-2)] border border-[var(--white-10)] px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--main)]">
                 <option value="default">Default (New Tab)</option>
                 <option value="custom">Custom URL</option>
               </select>
               <div id="homeCustomInput" class="hidden mt-3">
-                <input type="text" id="homeCustomUrl" data-setting="homeCustomUrl"
+                <input type="text" id="homeCustomUrl" data-setting="homePage"
                   class="w-full rounded-lg bg-[var(--bg-2)] border border-[var(--white-10)] px-3 py-2 text-sm text-[var(--text)] placeholder-[var(--text)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--main)]"
                   placeholder="https://example.com" />
               </div>

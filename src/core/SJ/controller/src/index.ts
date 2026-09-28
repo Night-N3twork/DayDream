@@ -696,7 +696,17 @@ function yieldGetInjectScripts(
 			script(
 				"data:text/javascript;charset=utf-8;base64," +
 					base64Encode(`
-					document.querySelectorAll("script[scramjet-injected]").forEach(script => script.remove());
+					/*__INJECT_CLEANUP_START__*/
+					// Remove scripts a previous injection left behind. Match by
+					// attribute PRESENCE rather than a CSS attribute selector: the
+					// production vocabulary scrub rewrites "scramjet-injected" to a
+					// $-prefixed token, which is not a valid CSS identifier and makes
+					// querySelectorAll("script[<token>-injected]") throw — aborting
+					// this whole bootstrap before $scramjetController.load runs.
+					document.querySelectorAll("script").forEach(el => {
+						if (el.hasAttribute("scramjet-injected")) el.remove();
+					});
+					/*__INJECT_CLEANUP_END__*/
 
 					// Obscura IIFE bundle: re-initializes a WASM-backed
 					// codec inside this proxied frame. Required because

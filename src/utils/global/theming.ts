@@ -563,8 +563,8 @@ class Themeing implements ThemeingInterface {
 
     if (theme["title-rep"] && document.getElementById("title-txt")) {
       document.getElementById("title-txt")!.textContent = theme["title-rep"];
-    } else {
-      document.getElementById("title-txt")!.textContent = "Daydream";
+    } else if (!theme["title-rep"] && document.getElementById("title-txt")) {
+      document.getElementById("title-txt")!.textContent = "DayDream";
     }
 
     if (

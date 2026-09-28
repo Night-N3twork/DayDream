@@ -39,7 +39,7 @@ load — no NyxAI changes needed.
 
 ## Security
 
-- **Origin allowlist** (`nyx.night-x.com`, `nyx.ampscat.dev`, plus
+- **Origin allowlist** (`nyx.night-x.com`, `nyx.ampscat.dev`, `nyxai.me`, plus
   optional `aiBridgeDevOrigin` settings override) gates both
   `scriptInjectionRegistry.match` AND channel source verification.
 - **Handshake**: host injects a per-session `HOST_MARKER`; client
@@ -79,7 +79,7 @@ See the spec's "Out of scope (v1)" section. Headlines:
 - No `AbortSignal` cancellation across the channel.
 - No network interception via CDP `Fetch.enable`.
 - `scripting.executeScript` supports `func:` only; `files:` rejects.
-- `windows.create` rejects (DDX is single-window).
+- `windows.create` opens tabs in DDX's single window; it cannot create a separate browser window.
 - `dom.uploadFile` works against chobitsu via blob URLs; behaviour
   against real Chrome may differ — revisit in v2.
 - Pre-existing NyxAI tabs don't get the client runtime on hot-reload of

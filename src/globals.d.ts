@@ -17,6 +17,10 @@ declare global {
 		__ddxOverrideWisp?: string;
 		/** Set by src/terbium/boot.ts when running inside a Terbium TAPP — handle for the parent Terbium tb API. */
 		__terbium?: { tb: unknown };
+		/** Set by the Terbium boot integration when native media controls are available. */
+		__ddxMediaMonitor?: import('./terbium/mediaIsland').MediaIslandMonitor;
+		/** Set by the Terbium boot integration when native toasts are available. */
+		__ddxNotify?: (message: string, options?: Record<string, unknown>) => void;
 		__obscura: {
 			ready: boolean;
 			encode: (url: string) => string;

@@ -6,9 +6,22 @@
     <script>
       self.__ddxBase = (function () {
         var p = location.pathname;
-        var i = p.indexOf("/internal/");
-        if (i !== -1) return p.substring(0, i + 1);
-        return new URL("./", location.href).pathname;
+        // Normalize: extensionless URLs without trailing slash are directories.
+        var last = p.split('/').pop() || '';
+        if (!p.endsWith('/') && last && !/\.[a-z0-9]+$/i.test(last)) {
+          p = p + '/';
+        }
+        var i = p.indexOf('/internal/');
+        var appBase = i !== -1
+          ? p.substring(0, i + 1)
+          : p.substring(0, p.lastIndexOf('/') + 1);
+        // <base> anchors every relative ref (script/link/modulepreload/img) to
+        // the page's real directory, so /app vs /app/ vs /app/x.html (and
+        // /app/internal/foo vs /app/internal/foo/) all resolve the same on ANY
+        // static host — no server-side redirect required.
+        var dirBase = p.substring(0, p.lastIndexOf('/') + 1);
+        document.write('<base href="' + dirBase + '">');
+        return appBase;
       })();
     </script>
     <link rel="icon" type="icon/x-icon" href="../../res/logo.png" />

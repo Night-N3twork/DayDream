@@ -910,11 +910,6 @@ export class ProfileManager implements ProfileManagerInterface {
       (createBtn as any).onclick,
     );
 
-    (window as any).__DEBUG_PROFILE_BTN = createBtn;
-    console.log(
-      "[ProfileManager] Button accessible via window.__DEBUG_PROFILE_BTN",
-    );
-
     if ((window as any).lucide && (window as any).lucide.createIcons) {
       (window as any).lucide.createIcons();
     }

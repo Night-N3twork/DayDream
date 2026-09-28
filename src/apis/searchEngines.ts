@@ -62,6 +62,10 @@ export function parseAtPrefix(
 	return { engine, query: match[2] ?? '' };
 }
 
+export function expandSearchTemplate(template: string, query: string): string {
+	return template.replace('%s', encodeURIComponent(query));
+}
+
 const BOOTSTRAP_ENGINE: SearchEngine = {
 	id: '__bootstrap__',
 	name: 'DuckDuckGo',
@@ -316,13 +320,13 @@ export function searchImpl(input: string, registry: SearchEngineRegistry): strin
 
 	const bangHit = parseBang(input, registry);
 	if (bangHit) {
-		return bangHit.engine.urlTemplate.replace('%s', encodeURIComponent(bangHit.query));
+		return expandSearchTemplate(bangHit.engine.urlTemplate, bangHit.query);
 	}
 
 	const defaultTemplate = registry.getDefault().urlTemplate;
 
 	if (input.includes('.') && input.includes(' ')) {
-		return defaultTemplate.replace('%s', encodeURIComponent(input));
+		return expandSearchTemplate(defaultTemplate, input);
 	}
 	try {
 		return new URL(input).toString();
@@ -332,7 +336,7 @@ export function searchImpl(input: string, registry: SearchEngineRegistry): strin
 			if (url.hostname.includes('.')) return url.toString();
 			throw new Error('Invalid hostname');
 		} catch {
-			return defaultTemplate.replace('%s', encodeURIComponent(input));
+			return expandSearchTemplate(defaultTemplate, input);
 		}
 	}
 }

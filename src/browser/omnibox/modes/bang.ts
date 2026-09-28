@@ -1,6 +1,6 @@
 import type { OmniboxRow } from '../types';
 import type { SearchEngineRegistry } from '@apis/searchEngines';
-import { parseBang } from '@apis/searchEngines';
+import { expandSearchTemplate, parseBang } from '@apis/searchEngines';
 
 export interface BangModeDeps {
 	rawInput: string;
@@ -22,7 +22,7 @@ export function renderBangMode(deps: BangModeDeps): BangModeResult {
 			icon: 'zap',
 			label: `Search ${engine.name} for: ${query || ''}`,
 			sublabel: `!${engine.bang}`,
-			onSelect: () => deps.onNavigate(engine.urlTemplate.replace('%s', encodeURIComponent(query))),
+			onSelect: () => deps.onNavigate(expandSearchTemplate(engine.urlTemplate, query)),
 		},
 	};
 }

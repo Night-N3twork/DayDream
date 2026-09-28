@@ -1,7 +1,14 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { plusAPI } from "./plus";
+import { beaconRoute } from "./beacon";
+import { createBuildConfig, resolveSeed } from "../vite/build-config";
+
+const __beaconConfig = createBuildConfig(resolveSeed());
+const __beaconPath = `${__beaconConfig.workspace}${__beaconConfig.cover.route}/${__beaconConfig.routes.assets}/${__beaconConfig.rpc.token}/beacon`;
 
 async function APIRouter(app: FastifyInstance) {
+  beaconRoute(app, __beaconPath);
+
   // search suggestions
   app.get(
     "/api/results/:query",

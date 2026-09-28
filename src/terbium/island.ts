@@ -14,8 +14,10 @@ const TAG = '[terbium/island]';
 const CONTROL_ID = 'daydream_menu';
 
 interface DaydreamGlobals {
-	tabs?: { createTab: (url: string) => void };
+	tabs?: { createTab: (url: string) => void; activeTabId?: string | null };
 	protocols?: { navigate: (url: string) => void };
+	windowing?: { newWindow: () => void };
+	devtools?: { toggle: (tabId: string) => void };
 }
 
 function openInternal(page: string): void {
@@ -66,6 +68,7 @@ export function installIsland(tb: any): void {
 					iframe: false,
 					options: [
 						{ text: 'New Tab', click: () => newTab() },
+						{ text: 'New Window', click: () => (globalThis as unknown as DaydreamGlobals).windowing?.newWindow() },
 						{
 							text: 'New Incognito Tab',
 							click: () => newTab({ incognito: true })
@@ -83,10 +86,18 @@ export function installIsland(tb: any): void {
 							text: 'Downloads',
 							click: () => openInternal('downloads')
 						},
+						{ text: 'Extensions', click: () => openInternal('extensions') },
 						null,
 						{
 							text: 'Settings',
 							click: () => openInternal('settings')
+						},
+						{
+							text: 'DevTools',
+							click: () => {
+								const g = globalThis as unknown as DaydreamGlobals;
+								if (g.tabs?.activeTabId) g.devtools?.toggle(g.tabs.activeTabId);
+							}
 						}
 					]
 				});

@@ -5,6 +5,8 @@ node_modules/
 *.lockb
 *-lock.yaml
 dist/
+.ddx-seed
+.ddx-builds.json
 .VSCodeCounter/
 plus-backend/
 .github/
@@ -16,12 +18,13 @@ tabs-updated/
 demo/
 ai/
 scramjet/
-docs/
+docs/ai/
 chii/
 NyxAI/
 Daylight/
 .superpowers/
 dist-tapp/
+dist-bootstrap/
 graphify-out/
 uBlock0.chromium/
 Starlight/
@@ -29,4 +32,10 @@ lunar-v3/
 lh-reports/
 Nova/
 codec/
+.playwright-mcp/
 docs/
+test-results/
+# Extracted standalone project (its own git repo); see shoestring/
+shoestring/
+Nebula/shoestring-nebula/
+shoestring-nebula/

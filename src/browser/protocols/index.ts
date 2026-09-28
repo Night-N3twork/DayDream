@@ -3,6 +3,7 @@ import { SettingsAPI } from '@apis/settings';
 import { Items } from '@browser/items';
 import { Proxy } from '@apis/proxy';
 import { resolvePath } from '@utils/basepath';
+import { isCustomHomePage } from '@utils/homePage';
 import { BUILTIN_PROTOCOL_ROUTES } from './manifest';
 
 interface RouteEntry {
@@ -65,8 +66,7 @@ class Protocols implements ProtoInterface {
 	private async initCustomProtocols(): Promise<void> {
 		const newtabPage = await this.settings.getItem('newtabPage');
 		const newtabCustomUrl = await this.settings.getItem('newtabCustomUrl');
-		const homeUrl = await this.settings.getItem('homeUrl');
-		const homeCustomUrl = await this.settings.getItem('homeCustomUrl');
+		const homePage = await this.settings.getItem<string>('homePage');
 
 		if (newtabPage === 'custom' && newtabCustomUrl) {
 			this.register('ddx', 'newtab', newtabCustomUrl, true);
@@ -81,8 +81,8 @@ class Protocols implements ProtoInterface {
 			);
 		}
 
-		if (homeUrl === 'custom' && homeCustomUrl) {
-			this.register('ddx', 'home', homeCustomUrl, true);
+		if (isCustomHomePage(homePage)) {
+			this.register('ddx', 'home', homePage, true);
 		} else {
 			this.register('ddx', 'home', resolvePath('internal/newtab'), false);
 		}
@@ -107,9 +107,9 @@ class Protocols implements ProtoInterface {
 		}
 	}
 
-	async updateHomeProtocol(url: string, customUrl?: string): Promise<void> {
-		if (url === 'custom' && customUrl) {
-			this.register('ddx', 'home', customUrl, true);
+	async updateHomeProtocol(homePage: string | null): Promise<void> {
+		if (isCustomHomePage(homePage)) {
+			this.register('ddx', 'home', homePage, true);
 		} else {
 			this.register('ddx', 'home', resolvePath('internal/newtab'), false);
 		}

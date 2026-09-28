@@ -8,6 +8,11 @@ interface ExtManagerLike {
 	grantActiveTab?: (extId: string, tabId: number) => void;
 }
 
+interface PagePointerDownHandler {
+	document: Document;
+	handler: (event: PointerEvent) => void;
+}
+
 export class TabPageClient {
 	private tabs: TabsInterface;
 	private observers: Map<string, MutationObserver> = new Map();
@@ -22,6 +27,8 @@ export class TabPageClient {
 		string,
 		(event: MouseEvent) => void
 	> = new Map();
+	private pagePointerDownHandlers: Map<string, PagePointerDownHandler> =
+		new Map();
 
 	constructor(tabs: TabsInterface) {
 		this.tabs = tabs;
@@ -32,6 +39,7 @@ export class TabPageClient {
 		this.setupNamedTargetLinkInterceptor(iframe);
 		this.setupModifierClickInterceptor(iframe);
 		this.setupClickListener(iframe);
+		this.setupPagePointerDownDismissal(iframe);
 		this.setupLinkContextBridge(iframe);
 		this.setupPageBackgroundContextBridge(iframe);
 		this.setupNavigationTracking(iframe);
@@ -107,6 +115,16 @@ export class TabPageClient {
 			}
 			this.pageBgContextHandlers.delete(iframeId);
 		}
+
+		const pointerDownHandler = this.pagePointerDownHandlers.get(iframeId);
+		if (pointerDownHandler) {
+			pointerDownHandler.document.removeEventListener(
+				'pointerdown',
+				pointerDownHandler.handler,
+				true
+			);
+			this.pagePointerDownHandlers.delete(iframeId);
+		}
 	};
 
 	cleanupAll = (): void => {
@@ -170,7 +188,39 @@ export class TabPageClient {
 			}
 		});
 		this.pageBgContextHandlers.clear();
+
+		this.pagePointerDownHandlers.forEach(({ document, handler }) => {
+			document.removeEventListener('pointerdown', handler, true);
+		});
+		this.pagePointerDownHandlers.clear();
 	};
+
+	private setupPagePointerDownDismissal(iframe: HTMLIFrameElement): void {
+		try {
+			const iframeDocument = iframe.contentDocument;
+			if (!iframeDocument) return;
+
+			const existing = this.pagePointerDownHandlers.get(iframe.id);
+			if (existing) {
+				existing.document.removeEventListener(
+					'pointerdown',
+					existing.handler,
+					true
+				);
+			}
+
+			const handler = () => {
+				document.dispatchEvent(new CustomEvent('ddx:page.clicked'));
+			};
+			iframeDocument.addEventListener('pointerdown', handler, true);
+			this.pagePointerDownHandlers.set(iframe.id, {
+				document: iframeDocument,
+				handler
+			});
+		} catch {
+			// Cross-origin iframe documents cannot be observed from the shell.
+		}
+	}
 
 	private setupLinkContextBridge(iframe: HTMLIFrameElement): void {
 		if (!iframe.contentDocument) return;

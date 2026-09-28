@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { resolveParentWisp, detectParent } from '../../src/terbium/boot';
+import { installIsland } from '../../src/terbium/island';
 
 function makeParent(opts: {
   scramjetWisp?: string;
@@ -95,5 +96,27 @@ describe('detectParent', () => {
       get parent() { throw new DOMException('cross-origin', 'SecurityError'); },
     };
     expect(detectParent(win)).toBeNull();
+  });
+});
+
+describe('installIsland', () => {
+  it('adds compatible Terbium shortcuts to the app menu', () => {
+    const addControl = vi.fn();
+    const create = vi.fn();
+    const tb = {
+      window: { island: { addControl, removeControl: vi.fn() } },
+      contextmenu: { create },
+    };
+
+    installIsland(tb);
+    const control = (addControl as any).mock.calls[0][0];
+    control.click();
+    const labels = create.mock.calls[0][0].options
+      .filter(Boolean)
+      .map((option: { text: string }) => option.text);
+
+    expect(labels).toContain('New Window');
+    expect(labels).toContain('Extensions');
+    expect(labels).toContain('DevTools');
   });
 });

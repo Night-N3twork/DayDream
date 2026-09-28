@@ -1,36 +1,26 @@
 # DayDream Browser
-<div align="center">
-    <img src="https://gitlab.com/nightnetwork/daydreamx/-/raw/main/assets/DDXBanner.png" style="width: 1200px"/>
-    <h2>Explore the Web with DayDream</h2>
-</div>
 
-![inpreview](https://gitlab.com/nightnetwork/daydreamx/-/raw/main/assets/preview/1.png)
-
-> [!IMPORTANT]
-> Please consider giving the original repository a star if you fork this project.
+DayDream Browser is a customizable, privacy-focused browser experience with integrated proxy tools and advanced browsing features.
 
 ## Features
 
-- Sleek UI/UX
-- Web Proxy/ UBG features (Panic key, cloak, etc)
-- Advanced Tabs inplementation
-- Dual Proxy support with Scramjet as primary
-- Advanced bookamrsk system
-- Detailed History
-- Extensions
-- Heavy Obfuscation (fonts and text are hidden)
-- Night+ Support (Advanced VPN with MullvadVPN support, and more!!!)
-- Advanced Theming (supports custom themes and custom background)
-- Advanced Search suggestions (Find websites, pages and features in the browser, games, etc)
-- Developer Tools
-- Advanced profiles and data system
+- InSpec support
+- Extension support
+- Proxy and UBG tools with panic key and cloaking
+- Scramjet proxy support
+- Tabs, bookmarks, history, and profiles
+- Custom themes, backgrounds, and search suggestions
+- Developer tools
+- Night+
 
-## Deployment
+## Platform Support
+
+Windows is not supported.
+
+## Installation
 
 > [!WARNING]
-> DayDream X cannot be hosted on static web hosting platforms such as Netlify, GitHub Pages, or Cloudflare Pages.
-
-### Installation & Setup
+> DayDream Browser cannot be hosted on static web hosting platforms such as Netlify, GitHub Pages, or Cloudflare Pages.
 
 ```bash
 git clone https://gitlab.com/nightnetwork/daydreamx.git
@@ -43,134 +33,21 @@ pnpm start
 
 The app will run on `http://127.0.0.1:8080` (localhost only, not accessible from other machines).
 
-#### Production Deployment
+## Builds
 
-For production deployments, you need to configure security settings:
+See [BUILDING.md](BUILDING.md).
 
-1. **Copy and configure the config file:**
-   ```bash
-   cp config.example.js config.js
-   ```
+### Terbium TAPP
 
-2. **Update security settings in `config.js`:**
-   - Change `server.host` to `"0.0.0.0"` to accept external connections
-   - Generate a secure marketplace PSK:
-     ```bash
-     node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-     ```
-   - Replace `"changeme"` in `marketplace.psk` with the generated value
-
-3. **Set up a reverse proxy (REQUIRED for production):**
-   
-   Never expose the Node.js server directly to the internet. Always use a reverse proxy:
-
-   **nginx example:**
-   ```nginx
-   server {
-       listen 80;
-       server_name your-domain.com;
-       
-       location / {
-           proxy_pass http://127.0.0.1:8080;
-           proxy_http_version 1.1;
-           proxy_set_header Upgrade $http_upgrade;
-           proxy_set_header Connection 'upgrade';
-           proxy_set_header Host $host;
-           proxy_cache_bypass $http_upgrade;
-       }
-   }
-   ```
-
-   **Caddy example:**
-   ```
-   your-domain.com {
-       reverse_proxy localhost:8080
-   }
-   ```
-
-4. **Enable HTTPS:**
-   Use Let's Encrypt with certbot (nginx) or Caddy's automatic HTTPS.
-
-5. **Configure firewall:**
-   ```bash
-   # Allow only necessary ports (example using ufw)
-   sudo ufw allow 80/tcp    # HTTP
-   sudo ufw allow 443/tcp   # HTTPS
-   sudo ufw allow 22/tcp    # SSH (if needed)
-   sudo ufw enable
-   
-   # Block direct access to Node.js port
-   sudo ufw deny 8080/tcp
-   ```
-
-6. **Start the application:**
-   ```bash
-   bun start
-   ```
-
-> [!WARNING]
-> **Production Security Checklist:**
-> - ✅ Changed marketplace PSK from "changeme"
-> - ✅ Set `host: "0.0.0.0"` in config.js
-> - ✅ Reverse proxy (nginx/Caddy) configured
-> - ✅ HTTPS enabled with valid certificate
-> - ✅ Firewall rules configured
-> - ✅ config.js added to .gitignore (do not commit secrets)
-
-Alternative package managers:
-```bash
-# For npm
-npm install
-npm build
-cp config.example.js config.js
-npm start
-
-# For pnpm
-pnpm install
-pnpm start
-```
-
-### Updating
-
-```bash
-git pull --force --allow-unrelated-histories
-```
-
-For assistance, deployment methods, or to access links, join our [Discord Server](https://discord.night-x.com) or open a discussion on GitLab.
-
-## Terbium TAPP build
-
-DayDream can also be packaged as a self-contained [Terbium](https://github.com/TerbiumOS/web-v2) app (`.TAPP.zip`). The TAPP build shares Terbium's Wisp transport (so it doesn't open its own backend connection) and routes downloads through Terbium's VFS.
-
-```bash
-pnpm run build:tapp
-```
-
-This produces `dist-tapp/daydream.TAPP.zip` containing the full Daydream build, a generated `.tbconfig` (Terbium's runtime app config), the app icon (copied from `public/res/logo.png`), and the Terbium integration shims under `terbium/`.
-
-To install the TAPP inside a running Terbium instance, extract the zip into Terbium's filesystem and call from the Terbium console:
-
-```js
-// After extracting daydream.TAPP.zip to /fs/apps/daydream.tapp/
-await tb.launcher.addApp({
-  name: "Daydream",
-  icon: "/fs/apps/daydream.tapp/icon.png",
-  src: "/fs/apps/daydream.tapp/index.html"
-});
-```
-
-The standalone `pnpm run build` is unaffected — TAPP-specific build steps only run when the `build:tapp` script is invoked.
-
-TAPP-specific configuration (display name, window size, package name) lives under the `terbium` key in `package.json` and is the source of truth for the generated `.tbconfig`. The `app_id` is derived as `com.tb.<pkg-name>`.
-
-> Note: `.tbconfig` is the **runtime** config inside the TAPP zip — what Terbium reads on install. It is distinct from the tb-repo *catalog* `manifest.json` (which lives in `TerbiumOS/tb-repo` and points to a hosted `pkg-download` URL). Producing a tb-repo entry for catalog submission is out of scope for this build.
+Build a Terbium application package with `npm run build:tapp`. The generated
+`dist-tapp/daydream.TAPP.zip` includes Terbium window options, App Island
+shortcuts, VFS-backed downloads, media controls, notifications, and the shared
+Wisp transport integration.
 
 ## Contributing
 
-To contribute, fork the repository, implement your changes, and submit a pull request. Please test your code thoroughly before submission. For detailed contribution guidelines, refer to [CONTRIB.md](https://gitlab.com/nightnetwork/daydreamx/blob/main/CONTRIB.md).
+To contribute, fork the repository, implement your changes, and submit a pull request. See [CONTRIB.md](https://gitlab.com/nightnetwork/daydreamx/blob/main/CONTRIB.md) for guidelines.
 
 ## Community
 
-Join our Discord community for support, access to our Link Archive, and to connect with other users.
-
-[![Discord](https://invidget.switchblade.xyz/QmWUfvm4bn?theme=dark)](https://discord.night-x.com)
+Join the [Discord community](https://discord.night-x.com) for support and updates.
