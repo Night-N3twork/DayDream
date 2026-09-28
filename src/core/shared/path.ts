@@ -1,4 +1,7 @@
-const ddxBase = self.location.pathname.replace(/[^/]*$/, '');
+const p = self.location.pathname;
+const workspaceMarker = '/app/';
+const idx = p.indexOf(workspaceMarker);
+const ddxBase = idx !== -1 ? p.substring(0, idx + workspaceMarker.length) : '/';
 self.__ddxBase = ddxBase;
 
 export const basePath = ddxBase;

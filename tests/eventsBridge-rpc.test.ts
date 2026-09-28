@@ -105,6 +105,27 @@ describe('RequestResponseChannel — round-trip', () => {
 		expect(reply.error).toBe('boom');
 	});
 
+	it('preserves structured errors when handler throws one', async () => {
+		channel.install();
+		channel.registerHandler('bad', async () => {
+			throw { code: 'handshake_required', message: 'no_session_id' };
+		});
+
+		const source = makeFakeSource();
+		window.dispatchEvent(
+			new MessageEvent('message', {
+				data: { [REQ]: { requestId: 'r2', type: 'bad' } },
+				source
+			})
+		);
+		await new Promise((r) => setTimeout(r, 0));
+
+		const calls = (source as unknown as { _calls: Array<{ data: { [k: string]: unknown } }> })._calls;
+		const reply = calls[0]!.data[RES] as { requestId: string; ok: boolean; error: unknown };
+		expect(reply.ok).toBe(false);
+		expect(reply.error).toEqual({ code: 'handshake_required', message: 'no_session_id' });
+	});
+
 	it('replies with no_handler_for_type for unknown type', async () => {
 		channel.install();
 		const source = makeFakeSource();

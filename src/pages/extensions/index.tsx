@@ -5,6 +5,7 @@ import 'basecoat-css/all';
 import '@pages/shared/themeInit';
 import '@utils/global/panic';
 import { createIcons, icons } from 'lucide';
+import { coverIdentity } from '@core/shared/build-runtime';
 
 interface HeliumExtMgrLike {
   installFromBytes(bytes: Uint8Array): Promise<{ id: string; name?: string }>;
@@ -365,7 +366,7 @@ async function installFile(file: File): Promise<void> {
   const mgr = getHeliumExtMgr();
   if (!mgr) {
     status(
-      'ExtensionManager not available — load this page from inside DDX.',
+      `ExtensionManager not available — load this page from inside ${coverIdentity().product}.`,
       'error',
     );
     return;

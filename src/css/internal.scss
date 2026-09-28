@@ -1,5 +1,6 @@
 @use "vars";
 @use "global";
+@use "pages/legal";
 
 :root {
   --internal-bg: var(--background-color, var(--bg-2));

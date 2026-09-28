@@ -1,5 +1,6 @@
 import type { OmniboxRow, OmniboxSection } from '../types';
 import type { SearchEngineRegistry, SearchEngine } from '@apis/searchEngines';
+import { expandSearchTemplate } from '@apis/searchEngines';
 
 export interface EngineModeDeps {
 	query: string;
@@ -26,7 +27,7 @@ export function renderEngineMode(deps: EngineModeDeps): EngineModeResult {
 					id: `eng-preview-${engine.id}`,
 					icon: 'search',
 					label: `Search ${engine.name} for: ${rest}`,
-					onSelect: () => deps.onNavigate(engine.urlTemplate.replace('%s', encodeURIComponent(rest))),
+					onSelect: () => deps.onNavigate(expandSearchTemplate(engine.urlTemplate, rest)),
 				},
 				sections: [],
 			};

@@ -330,8 +330,7 @@ function buildScriptSection(scripts: ScriptEntry[]): string {
   return escapeCdata(parts.join(";\n\n"));
 }
 
-function convertHtmlToSvg(html: string): string {
-  const parsed = parseHtml(html);
+export function convertHtmlToSvg(html: string): string {  const parsed = parseHtml(html);
 
   const styleContent = parsed.inlineStyles.join("\n");
 

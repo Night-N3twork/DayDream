@@ -17,6 +17,7 @@
  */
 
 import type { Proxy } from './proxy';
+import { expandSearchTemplate } from './searchEngines';
 import type { HandlerContext as NyxHandlerContext } from './nyxBridge/handlers';
 import type { TabsInterface } from '@browser/tabs/types';
 import {
@@ -98,6 +99,7 @@ import { getDdxGroupId, hashGroupId } from '@apis/nyxBridge/tabResolver';
 import { DDX_CHROME_BASELINE, isSupportedMinimumChromeVersion } from './extensions/versionGate';
 import { sanitizeTabsForExtension } from './extensions/tabPermissions';
 import { attachExtensionHandshakeWhenReady } from './extensions/handshake';
+import { coverIdentity } from '@core/shared/build-runtime';
 
 const CONTAINER_ID = '__helium_extensions__';
 const SEND_MESSAGE_TIMEOUT_MS = 5 * 60 * 1000;
@@ -955,7 +957,7 @@ export class ExtensionManager {
     if (typeof minVer === 'string') {
       if (!isSupportedMinimumChromeVersion(minVer)) {
         throw new Error(
-          `Extension requires Chrome ${minVer} or newer (DDX baseline: ${DDX_CHROME_BASELINE}). Install rejected.`,
+          `Extension requires Chrome ${minVer} or newer (${coverIdentity().product} baseline: ${DDX_CHROME_BASELINE}). Install rejected.`,
         );
       }
     }
@@ -2713,7 +2715,7 @@ export class ExtensionManager {
         const tmpl = (window as { searchEngines?: { getDefault(): { urlTemplate: string } } })
           .searchEngines?.getDefault().urlTemplate
           ?? 'https://duckduckgo.com/?q=%s';
-        const url = tmpl.replace('%s', encodeURIComponent(opts.text));
+        const url = expandSearchTemplate(tmpl, opts.text);
         await this.openTab(url);
       },
 
@@ -3044,7 +3046,7 @@ export class ExtensionManager {
         const opts = args[0] as { origins?: string[] } | undefined;
         if (opts?.origins && opts.origins.length > 0) {
           console.warn(
-            '[browsingData.removeIndexedDB] per-origin clear unsupported in DDX; IDB is shared with host. Ignoring.',
+            '[browsingData.removeIndexedDB] per-origin clear unsupported; IDB is shared with host. Ignoring.',
           );
         }
       },

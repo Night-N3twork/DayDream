@@ -1,7 +1,7 @@
 // Top-level browser chrome layout: browser container, frame container,
 // top bar, tab bar, utility bar, menu popup.
 
-#browser-container {
+#app-host {
 	display: flex;
 	flex-direction: column;
 	height: 100vh;

@@ -1,1098 +1,1330 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Terms of Service - DayDreamX</title>
-    <script>
-      self.__ddxBase = (function () {
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Terms of Service - DayDreamX</title>
+		<script>
+			self.__ddxBase = (function () {
         var p = location.pathname;
-        var i = p.indexOf("/internal/");
-        if (i !== -1) return p.substring(0, i + 1);
-        return new URL("./", location.href).pathname;
+        // Normalize: extensionless URLs without trailing slash are directories.
+        var last = p.split('/').pop() || '';
+        if (!p.endsWith('/') && last && !/\.[a-z0-9]+$/i.test(last)) {
+          p = p + '/';
+        }
+        var i = p.indexOf('/internal/');
+        var appBase = i !== -1
+          ? p.substring(0, i + 1)
+          : p.substring(0, p.lastIndexOf('/') + 1);
+        // <base> anchors every relative ref (script/link/modulepreload/img) to
+        // the page's real directory, so /app vs /app/ vs /app/x.html (and
+        // /app/internal/foo vs /app/internal/foo/) all resolve the same on ANY
+        // static host — no server-side redirect required.
+        var dirBase = p.substring(0, p.lastIndexOf('/') + 1);
+        document.write('<base href="' + dirBase + '">');
+        return appBase;
       })();
-    </script>
-    <link rel="icon" type="icon/x-icon" href="../../res/logo.png" />
-    <meta property="og:image" content="../../res/logo.png" />
-    <link rel="stylesheet" href="/src/css/internal.scss" />
-  </head>
+		</script>
+		<link rel="icon" type="icon/x-icon" href="../../res/logo.png" />
+		<meta property="og:image" content="../../res/logo.png" />
+		<link rel="stylesheet" href="/src/css/internal.scss" />
+	</head>
 
-  <body class="bg-[var(--bg-2)] text-[var(--text)] antialiased">
-    <div class="min-h-screen w-full">
-      <main class="flex-1 overflow-y-auto">
-        <div class="p-8 max-w-4xl mx-auto space-y-8">
-          <!-- Header -->
-          <div class="text-center space-y-4 py-8">
-            <div class="flex items-center justify-center gap-2 mb-4">
-              <div class="stack h-12 w-12">
-                <div
-                  class="masked-shape"
-                  style="
-                    width: 100%;
-                    height: 100%;
-                    background: var(--main);
-                    -webkit-mask-image: url(&quot;../../res/logo/mask.png&quot;);
-                    -webkit-mask-repeat: no-repeat;
-                    -webkit-mask-position: center;
-                    -webkit-mask-size: cover;
-                    mask-image: url(&quot;../../res/logo/mask.png&quot;);
-                    mask-repeat: no-repeat;
-                    mask-position: center;
-                    mask-size: cover;
-                  "
-                >
-                  <img
-                    class="overlay"
-                    src="../../res/logo/overlay.png"
-                    alt="overlay gradient"
-                    style="
-                      width: 100%;
-                      height: 100%;
-                      mix-blend-mode: multiply;
-                      pointer-events: none;
-                    "
-                  />
-                </div>
-              </div>
-            </div>
-            <h1 class="text-4xl font-bold text-[var(--main)]">
-              Terms of Service
-            </h1>
-            <p class="text-sm text-[var(--proto)]">
-              Last Updated: November 3, 2025
-            </p>
-            <a
-              href="../newtab/"
-              class="inline-flex items-center gap-2 text-sm text-[var(--main)] hover:text-[var(--main)]/80 transition-colors"
-            >
-              <i data-lucide="arrow-left" class="h-4 w-4"></i>
-              Back to Home
-            </a>
-          </div>
+	<body class="legal-page">
+		<div class="legal-layout">
+			<main class="legal-main">
+				<div class="legal-content">
+					<!-- Header -->
+					<header class="legal-header">
+						<div class="legal-logo">
+							<div class="stack">
+								<div
+									class="masked-shape"
+									style="
+										width: 100%;
+										height: 100%;
+										background: var(--main);
+										-webkit-mask-image: url('../../res/logo/mask.png');
+										-webkit-mask-repeat: no-repeat;
+										-webkit-mask-position: center;
+										-webkit-mask-size: cover;
+										mask-image: url('../../res/logo/mask.png');
+										mask-repeat: no-repeat;
+										mask-position: center;
+										mask-size: cover;
+									"
+								>
+									<img
+										class="overlay"
+										src="../../res/logo/overlay.png"
+										alt="overlay gradient"
+										style="
+											width: 100%;
+											height: 100%;
+											mix-blend-mode: multiply;
+											pointer-events: none;
+										"
+									/>
+								</div>
+							</div>
+						</div>
+						<h1 class="legal-title">Terms of Service</h1>
+						<p class="legal-updated">
+							Last Updated: November 3, 2025
+						</p>
+						<a href="../newtab/" class="legal-back-link">
+							<i data-lucide="arrow-left"></i>
+							Back to Home
+						</a>
+					</header>
 
-          <!-- Introduction -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                1. Acceptance of Terms
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>
-                  By accessing and using DayDreamX ("the Service"), you accept
-                  and agree to be bound by the terms and provision of this
-                  agreement. If you do not agree to these Terms of Service,
-                  please do not use the Service.
-                </p>
-                <p class="font-medium text-[var(--main)]">
-                  DayDreamX is owned and operated by
-                  <strong>Night Network</strong>. References to "we," "us," or
-                  "our" in these Terms refer to Night Network.
-                </p>
-                <p>
-                  DayDreamX is a web proxy service that provides users with
-                  enhanced privacy and browsing capabilities. We reserve the
-                  right to update and change the Terms of Service from time to
-                  time without notice.
-                </p>
-              </div>
-            </div>
-          </section>
+					<!-- Introduction -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								1. Acceptance of Terms
+							</h2>
+							<div class="legal-body">
+								<p>
+									By accessing and using DayDreamX ("the
+									Service"), you accept and agree to be bound
+									by the terms and provision of this
+									agreement. If you do not agree to these
+									Terms of Service, please do not use the
+									Service.
+								</p>
+								<p class="legal-paragraph legal-emphasis">
+									DayDreamX is owned and operated by
+									<strong>Night Network</strong>. References
+									to "we," "us," or "our" in these Terms refer
+									to Night Network.
+								</p>
+								<p>
+									DayDreamX is a web proxy service that
+									provides users with enhanced privacy and
+									browsing capabilities. We reserve the right
+									to update and change the Terms of Service
+									from time to time without notice.
+								</p>
+							</div>
+						</div>
+					</section>
 
-          <!-- Use of Service -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                2. Use of Service
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p class="font-medium text-[var(--main)]">
-                  You agree to use DayDreamX only for lawful purposes and in
-                  accordance with these Terms. You agree NOT to:
-                </p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>
-                    Use the Service for any illegal activities or to violate any
-                    laws in your jurisdiction
-                  </li>
-                  <li>
-                    Attempt to gain unauthorized access to any portion of the
-                    Service
-                  </li>
-                  <li>
-                    Use the Service to transmit any harmful code, viruses, or
-                    malicious software
-                  </li>
-                  <li>
-                    Engage in any activity that interferes with or disrupts the
-                    Service
-                  </li>
-                  <li>
-                    Use the Service to harass, abuse, or harm another person
-                  </li>
-                  <li>
-                    Impersonate any person or entity or misrepresent your
-                    affiliation with a person or entity
-                  </li>
-                  <li>
-                    Use the Service to access content that is illegal, harmful,
-                    or violates intellectual property rights
-                  </li>
-                  <li>
-                    Attempt to bypass any security measures or restrictions
-                    implemented by the Service
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </section>
+					<!-- Use of Service -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">2. Use of Service</h2>
+							<div class="legal-body">
+								<p class="legal-paragraph legal-emphasis">
+									You agree to use DayDreamX only for lawful
+									purposes and in accordance with these Terms.
+									You agree NOT to:
+								</p>
+								<ul class="legal-list">
+									<li>
+										Use the Service for any illegal
+										activities or to violate any laws in
+										your jurisdiction
+									</li>
+									<li>
+										Attempt to gain unauthorized access to
+										any portion of the Service
+									</li>
+									<li>
+										Use the Service to transmit any harmful
+										code, viruses, or malicious software
+									</li>
+									<li>
+										Engage in any activity that interferes
+										with or disrupts the Service
+									</li>
+									<li>
+										Use the Service to harass, abuse, or
+										harm another person
+									</li>
+									<li>
+										Impersonate any person or entity or
+										misrepresent your affiliation with a
+										person or entity
+									</li>
+									<li>
+										Use the Service to access content that
+										is illegal, harmful, or violates
+										intellectual property rights
+									</li>
+									<li>
+										Attempt to bypass any security measures
+										or restrictions implemented by the
+										Service
+									</li>
+								</ul>
+							</div>
+						</div>
+					</section>
 
-          <!-- User Responsibilities -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                3. User Responsibilities
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>
-                  You are solely responsible for your conduct and any data,
-                  text, files, information, usernames, or other content that you
-                  submit, post, or display while using the Service.
-                </p>
-                <p>
-                  You understand that all information, data, text, software,
-                  music, sound, photographs, graphics, video, messages, or other
-                  materials accessed through the Service are the sole
-                  responsibility of the person from whom such content
-                  originated.
-                </p>
-                <p class="text-[var(--main)] font-medium">
-                  We strongly encourage users to respect all applicable laws and
-                  regulations when using DayDreamX. The Service is provided as a
-                  tool for privacy and convenience, not for circumventing legal
-                  restrictions.
-                </p>
-              </div>
-            </div>
-          </section>
+					<!-- User Responsibilities -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								3. User Responsibilities
+							</h2>
+							<div class="legal-body">
+								<p>
+									You are solely responsible for your conduct
+									and any data, text, files, information,
+									usernames, or other content that you submit,
+									post, or display while using the Service.
+								</p>
+								<p>
+									You understand that all information, data,
+									text, software, music, sound, photographs,
+									graphics, video, messages, or other
+									materials accessed through the Service are
+									the sole responsibility of the person from
+									whom such content originated.
+								</p>
+								<p class="legal-paragraph legal-emphasis">
+									We strongly encourage users to respect all
+									applicable laws and regulations when using
+									DayDreamX. The Service is provided as a tool
+									for privacy and convenience, not for
+									circumventing legal restrictions.
+								</p>
+							</div>
+						</div>
+					</section>
 
-          <!-- Service Availability -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                4. Service Availability
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>
-                  We strive to maintain the availability of DayDreamX, but we do
-                  not guarantee that the Service will be available at all times.
-                  The Service may be subject to:
-                </p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>Scheduled maintenance and updates</li>
-                  <li>Unscheduled downtime due to technical issues</li>
-                  <li>Interruptions beyond our control</li>
-                  <li>Modifications or discontinuation of features</li>
-                </ul>
-                <p>
-                  We reserve the right to modify, suspend, or discontinue any
-                  part of the Service at any time without prior notice.
-                </p>
-              </div>
-            </div>
-          </section>
+					<!-- Service Availability -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								4. Service Availability
+							</h2>
+							<div class="legal-body">
+								<p>
+									We strive to maintain the availability of
+									DayDreamX, but we do not guarantee that the
+									Service will be available at all times. The
+									Service may be subject to:
+								</p>
+								<ul class="legal-list">
+									<li>Scheduled maintenance and updates</li>
+									<li>
+										Unscheduled downtime due to technical
+										issues
+									</li>
+									<li>Interruptions beyond our control</li>
+									<li>
+										Modifications or discontinuation of
+										features
+									</li>
+								</ul>
+								<p>
+									We reserve the right to modify, suspend, or
+									discontinue any part of the Service at any
+									time without prior notice.
+								</p>
+							</div>
+						</div>
+					</section>
 
-          <!-- Intellectual Property -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                5. Intellectual Property
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>
-                  The Service and its original content, features, and
-                  functionality are owned by <strong>Night Network</strong> and
-                  are protected by international copyright, trademark, patent,
-                  trade secret, and other intellectual property laws.
-                </p>
-                <p class="font-medium text-[var(--main)]">
-                  DayDreamX is open-source software licensed under the
-                  <strong
-                    >GNU Affero General Public License v3.0 (AGPL-3.0)</strong
-                  >.
-                </p>
-                <p>
-                  The complete source code is publicly available at:
-                  <a
-                    href="https://gitlab.com/nightnetwork/daydreamx"
-                    class="text-[var(--main)] hover:text-[var(--main)]/80 font-medium"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    https://gitlab.com/nightnetwork/daydreamx
-                  </a>
-                </p>
-                <p>Under the AGPL-3.0 license, you may:</p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>Use, copy, and distribute the source code</li>
-                  <li>Modify the source code to suit your needs</li>
-                  <li>Use the software for commercial purposes</li>
-                  <li>Access and review all source code for transparency</li>
-                </ul>
-                <p class="mt-3">However, you must:</p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>Include the original license and copyright notice</li>
-                  <li>State significant changes made to the code</li>
-                  <li>
-                    Make your source code available when you distribute the
-                    software
-                  </li>
-                  <li>License your derivative works under AGPL-3.0 as well</li>
-                  <li>
-                    If you run a modified version as a network service, make the
-                    source code available to users
-                  </li>
-                </ul>
-                <p class="mt-3">
-                  All trademarks, service marks, trade names, and logos used on
-                  the Service are the property of their respective owners.
-                </p>
-              </div>
-            </div>
+					<!-- Intellectual Property -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								5. Intellectual Property
+							</h2>
+							<div class="legal-body">
+								<p>
+									The Service and its original content,
+									features, and functionality are owned by
+									<strong>Night Network</strong> and are
+									protected by international copyright,
+									trademark, patent, trade secret, and other
+									intellectual property laws.
+								</p>
+								<p class="legal-paragraph legal-emphasis">
+									DayDreamX is open-source software licensed
+									under the
+									<strong
+										>GNU Affero General Public License v3.0
+										(AGPL-3.0)</strong
+									>.
+								</p>
+								<p>
+									The complete source code is publicly
+									available at:
+									<a
+										href="https://gitlab.com/nightnetwork/daydreamx"
+										class="legal-link"
+										target="_blank"
+										rel="noopener noreferrer"
+									>
+										https://gitlab.com/nightnetwork/daydreamx
+									</a>
+								</p>
+								<p>Under the AGPL-3.0 license, you may:</p>
+								<ul class="legal-list">
+									<li>
+										Use, copy, and distribute the source
+										code
+									</li>
+									<li>
+										Modify the source code to suit your
+										needs
+									</li>
+									<li>
+										Use the software for commercial purposes
+									</li>
+									<li>
+										Access and review all source code for
+										transparency
+									</li>
+								</ul>
+								<p class="legal-paragraph legal-block">
+									However, you must:
+								</p>
+								<ul class="legal-list">
+									<li>
+										Include the original license and
+										copyright notice
+									</li>
+									<li>
+										State significant changes made to the
+										code
+									</li>
+									<li>
+										Make your source code available when you
+										distribute the software
+									</li>
+									<li>
+										License your derivative works under
+										AGPL-3.0 as well
+									</li>
+									<li>
+										If you run a modified version as a
+										network service, make the source code
+										available to users
+									</li>
+								</ul>
+								<p class="legal-paragraph legal-block">
+									All trademarks, service marks, trade names,
+									and logos used on the Service are the
+									property of their respective owners.
+								</p>
+							</div>
+						</div>
 
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                5.2 Code Obfuscation & Source Code Access
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>
-                  To protect our intellectual property, infrastructure, and
-                  prevent unauthorized circumvention of Night+ systems, Night
-                  Network employs
-                  <strong>code and font obfuscation</strong> during the
-                  production build process.
-                </p>
-                <p>
-                  <strong>What is obfuscated:</strong>
-                </p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>
-                    JavaScript code is minified, mangled, and obfuscated to make
-                    reverse engineering difficult
-                  </li>
-                  <li>
-                    Font files may be obfuscated to prevent unauthorized
-                    extraction and use
-                  </li>
-                  <li>Configuration files and API endpoints may be obscured</li>
-                  <li>
-                    Night+ authentication and authorization logic receives
-                    additional protection
-                  </li>
-                </ul>
-                <p class="mt-3 font-medium text-[var(--main)]">
-                  Important: Despite production obfuscation, DayDreamX remains
-                  fully compliant with the AGPL-3.0 license because:
-                </p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>
-                    Complete, unobfuscated source code is publicly available in
-                    our GitLab repository
-                  </li>
-                  <li>
-                    The obfuscation only applies to built/compiled production
-                    code, not source code
-                  </li>
-                  <li>
-                    You can review, modify, and build the source code yourself
-                    without obfuscation
-                  </li>
-                  <li>
-                    Build scripts and obfuscation configurations are included in
-                    the repository
-                  </li>
-                </ul>
-                <p class="mt-3">
-                  Obfuscation does not affect the functionality or your rights
-                  under AGPL-3.0. It serves to protect our infrastructure from
-                  malicious actors and prevent easy circumvention of Night+
-                  protections.
-                </p>
-                <p class="mt-3">
-                  <strong>Plain Text Legal Documents:</strong> For easier
-                  reading and archival purposes, plain text Markdown versions of
-                  our Terms of Service and Privacy Policy are available in the
-                  repository at:
-                </p>
-                <ul class="list-disc list-inside space-y-1 ml-4 mt-2">
-                  <li><code>TERMS.md</code> - Terms of Service</li>
-                  <li><code>PRIVACY.md</code> - Privacy Policy</li>
-                </ul>
-              </div>
-            </div>
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								5.2 Code Obfuscation & Source Code Access
+							</h2>
+							<div class="legal-body">
+								<p>
+									To protect our intellectual property,
+									infrastructure, and prevent unauthorized
+									circumvention of Night+ systems, Night
+									Network employs
+									<strong>code and font obfuscation</strong>
+									during the production build process.
+								</p>
+								<p>
+									<strong>What is obfuscated:</strong>
+								</p>
+								<ul class="legal-list">
+									<li>
+										JavaScript code is minified, mangled,
+										and obfuscated to make reverse
+										engineering difficult
+									</li>
+									<li>
+										Font files may be obfuscated to prevent
+										unauthorized extraction and use
+									</li>
+									<li>
+										Configuration files and API endpoints
+										may be obscured
+									</li>
+									<li>
+										Night+ authentication and authorization
+										logic receives additional protection
+									</li>
+								</ul>
+								<p
+									class="legal-paragraph legal-emphasis legal-block"
+								>
+									Important: Despite production obfuscation,
+									DayDreamX remains fully compliant with the
+									AGPL-3.0 license because:
+								</p>
+								<ul class="legal-list">
+									<li>
+										Complete, unobfuscated source code is
+										publicly available in our GitLab
+										repository
+									</li>
+									<li>
+										The obfuscation only applies to
+										built/compiled production code, not
+										source code
+									</li>
+									<li>
+										You can review, modify, and build the
+										source code yourself without obfuscation
+									</li>
+									<li>
+										Build scripts and obfuscation
+										configurations are included in the
+										repository
+									</li>
+								</ul>
+								<p class="legal-paragraph legal-block">
+									Obfuscation does not affect the
+									functionality or your rights under AGPL-3.0.
+									It serves to protect our infrastructure from
+									malicious actors and prevent easy
+									circumvention of Night+ protections.
+								</p>
+								<p class="legal-paragraph legal-block">
+									<strong>Plain Text Legal Documents:</strong>
+									For easier reading and archival purposes,
+									plain text Markdown versions of our Terms of
+									Service and Privacy Policy are available in
+									the repository at:
+								</p>
+								<ul class="legal-list legal-list-compact">
+									<li>
+										<code>TERMS.md</code> - Terms of Service
+									</li>
+									<li>
+										<code>PRIVACY.md</code> - Privacy Policy
+									</li>
+								</ul>
+							</div>
+						</div>
 
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                5.3 Restrictions on Modifications and Forks
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p class="font-medium text-[var(--main)] uppercase">
-                  Important: While DayDreamX is licensed under AGPL-3.0 and may
-                  be freely modified and distributed, certain restrictions apply
-                  to protect the integrity of our services and business model.
-                </p>
-                <p>
-                  <strong>Night+ System Protection:</strong> Night+ is our
-                  premium service infrastructure that provides optional enhanced
-                  features and sync capabilities. The following actions are
-                  strictly prohibited and constitute a violation of these Terms:
-                </p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>
-                    <strong
-                      >Removal or circumvention of Night+ authentication and
-                      authorization systems</strong
-                    >
-                  </li>
-                  <li>
-                    <strong
-                      >"Cracking" or bypassing Night+ paywalls or access
-                      controls</strong
-                    >
-                  </li>
-                  <li>
-                    <strong
-                      >Modifying the code to provide unauthorized access to
-                      Night+ features</strong
-                    >
-                  </li>
-                  <li>
-                    <strong
-                      >Distributing forks or modified versions that illegally
-                      grant access to Night+ services</strong
-                    >
-                  </li>
-                  <li>
-                    <strong
-                      >Reverse engineering Night+ API endpoints for unauthorized
-                      access</strong
-                    >
-                  </li>
-                  <li>
-                    <strong
-                      >Creating or distributing patches, scripts, or tools
-                      designed to bypass Night+ authentication</strong
-                    >
-                  </li>
-                </ul>
-                <p class="mt-3 font-medium text-[var(--main)]">
-                  Enforcement: Any forks, distributions, or modified versions of
-                  DayDreamX that violate these Night+ restrictions may be
-                  subject to:
-                </p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>DMCA takedown notices</li>
-                  <li>Legal action for copyright infringement</li>
-                  <li>Removal from hosting platforms and code repositories</li>
-                  <li>Termination of access to official DayDreamX services</li>
-                  <li>
-                    Civil and/or criminal prosecution under applicable law
-                  </li>
-                </ul>
-                <p class="mt-3">
-                  <strong>Permitted Modifications:</strong> You are free to fork
-                  and modify DayDreamX for legitimate purposes, including:
-                </p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>Adding new features that don't circumvent Night+</li>
-                  <li>
-                    Customizing the UI/UX and branding (while maintaining
-                    attribution)
-                  </li>
-                  <li>Fixing bugs and improving performance</li>
-                  <li>Integrating with other services and APIs</li>
-                  <li>
-                    Removing Night+ integration entirely (but not replacing it
-                    with unauthorized access)
-                  </li>
-                </ul>
-                <p class="mt-3 text-[var(--proto)] text-xs">
-                  Note: This restriction is designed to protect our
-                  infrastructure and sustainable business model. We rely on
-                  Night+ subscriptions to fund development and server costs.
-                  Unauthorized access harms the project and community.
-                </p>
-              </div>
-            </div>
-          </section>
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								5.3 Restrictions on Modifications and Forks
+							</h2>
+							<div class="legal-body">
+								<p
+									class="legal-paragraph legal-emphasis legal-uppercase"
+								>
+									Important: While DayDreamX is licensed under
+									AGPL-3.0 and may be freely modified and
+									distributed, certain restrictions apply to
+									protect the integrity of our services and
+									business model.
+								</p>
+								<p>
+									<strong>Night+ System Protection:</strong>
+									Night+ is our premium service infrastructure
+									that provides optional enhanced features and
+									sync capabilities. The following actions are
+									strictly prohibited and constitute a
+									violation of these Terms:
+								</p>
+								<ul class="legal-list">
+									<li>
+										<strong
+											>Removal or circumvention of Night+
+											authentication and authorization
+											systems</strong
+										>
+									</li>
+									<li>
+										<strong
+											>"Cracking" or bypassing Night+
+											paywalls or access controls</strong
+										>
+									</li>
+									<li>
+										<strong
+											>Modifying the code to provide
+											unauthorized access to Night+
+											features</strong
+										>
+									</li>
+									<li>
+										<strong
+											>Distributing forks or modified
+											versions that illegally grant access
+											to Night+ services</strong
+										>
+									</li>
+									<li>
+										<strong
+											>Reverse engineering Night+ API
+											endpoints for unauthorized
+											access</strong
+										>
+									</li>
+									<li>
+										<strong
+											>Creating or distributing patches,
+											scripts, or tools designed to bypass
+											Night+ authentication</strong
+										>
+									</li>
+								</ul>
+								<p
+									class="legal-paragraph legal-emphasis legal-block"
+								>
+									Enforcement: Any forks, distributions, or
+									modified versions of DayDreamX that violate
+									these Night+ restrictions may be subject to:
+								</p>
+								<ul class="legal-list">
+									<li>DMCA takedown notices</li>
+									<li>
+										Legal action for copyright infringement
+									</li>
+									<li>
+										Removal from hosting platforms and code
+										repositories
+									</li>
+									<li>
+										Termination of access to official
+										DayDreamX services
+									</li>
+									<li>
+										Civil and/or criminal prosecution under
+										applicable law
+									</li>
+								</ul>
+								<p class="legal-paragraph legal-block">
+									<strong>Permitted Modifications:</strong>
+									You are free to fork and modify DayDreamX
+									for legitimate purposes, including:
+								</p>
+								<ul class="legal-list">
+									<li>
+										Adding new features that don't
+										circumvent Night+
+									</li>
+									<li>
+										Customizing the UI/UX and branding
+										(while maintaining attribution)
+									</li>
+									<li>
+										Fixing bugs and improving performance
+									</li>
+									<li>
+										Integrating with other services and APIs
+									</li>
+									<li>
+										Removing Night+ integration entirely
+										(but not replacing it with unauthorized
+										access)
+									</li>
+								</ul>
+								<p
+									class="legal-paragraph legal-note legal-block"
+								>
+									Note: This restriction is designed to
+									protect our infrastructure and sustainable
+									business model. We rely on Night+
+									subscriptions to fund development and server
+									costs. Unauthorized access harms the project
+									and community.
+								</p>
+							</div>
+						</div>
+					</section>
 
-          <!-- Disclaimer of Warranties -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                6. Disclaimer of Warranties
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p class="uppercase font-medium text-[var(--main)]">
-                  The Service is provided "AS IS" and "AS AVAILABLE" without
-                  warranties of any kind, either express or implied.
-                </p>
-                <p>We do not warrant that:</p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>The Service will meet your specific requirements</li>
-                  <li>
-                    The Service will be uninterrupted, timely, secure, or
-                    error-free
-                  </li>
-                  <li>
-                    The results obtained from the use of the Service will be
-                    accurate or reliable
-                  </li>
-                  <li>Any errors in the Service will be corrected</li>
-                </ul>
-                <p>
-                  Your use of the Service is at your sole risk. Night Network is
-                  not responsible for any content accessed through the Service.
-                </p>
-              </div>
-            </div>
-          </section>
+					<!-- Disclaimer of Warranties -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								6. Disclaimer of Warranties
+							</h2>
+							<div class="legal-body">
+								<p
+									class="legal-paragraph legal-emphasis legal-uppercase"
+								>
+									The Service is provided "AS IS" and "AS
+									AVAILABLE" without warranties of any kind,
+									either express or implied.
+								</p>
+								<p>We do not warrant that:</p>
+								<ul class="legal-list">
+									<li>
+										The Service will meet your specific
+										requirements
+									</li>
+									<li>
+										The Service will be uninterrupted,
+										timely, secure, or error-free
+									</li>
+									<li>
+										The results obtained from the use of the
+										Service will be accurate or reliable
+									</li>
+									<li>
+										Any errors in the Service will be
+										corrected
+									</li>
+								</ul>
+								<p>
+									Your use of the Service is at your sole
+									risk. Night Network is not responsible for
+									any content accessed through the Service.
+								</p>
+							</div>
+						</div>
+					</section>
 
-          <!-- Limitation of Liability -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                7. Limitation of Liability
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p class="uppercase font-medium text-[var(--main)]">
-                  In no event shall Night Network, DayDreamX, its developers,
-                  contributors, or affiliates be liable for any indirect,
-                  incidental, special, consequential, or punitive damages
-                  resulting from:
-                </p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>
-                    Your access to or use of (or inability to access or use) the
-                    Service
-                  </li>
-                  <li>
-                    Any conduct or content of any third party on the Service
-                  </li>
-                  <li>Any content obtained from the Service</li>
-                  <li>
-                    Unauthorized access, use, or alteration of your
-                    transmissions or content
-                  </li>
-                </ul>
-                <p>
-                  This limitation applies whether the alleged liability is based
-                  on contract, tort, negligence, strict liability, or any other
-                  basis.
-                </p>
-              </div>
-            </div>
-          </section>
+					<!-- Limitation of Liability -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								7. Limitation of Liability
+							</h2>
+							<div class="legal-body">
+								<p
+									class="legal-paragraph legal-emphasis legal-uppercase"
+								>
+									In no event shall Night Network, DayDreamX,
+									its developers, contributors, or affiliates
+									be liable for any indirect, incidental,
+									special, consequential, or punitive damages
+									resulting from:
+								</p>
+								<ul class="legal-list">
+									<li>
+										Your access to or use of (or inability
+										to access or use) the Service
+									</li>
+									<li>
+										Any conduct or content of any third
+										party on the Service
+									</li>
+									<li>
+										Any content obtained from the Service
+									</li>
+									<li>
+										Unauthorized access, use, or alteration
+										of your transmissions or content
+									</li>
+								</ul>
+								<p>
+									This limitation applies whether the alleged
+									liability is based on contract, tort,
+									negligence, strict liability, or any other
+									basis.
+								</p>
+							</div>
+						</div>
+					</section>
 
-          <!-- Third-Party Content -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                8. Third-Party Content and Services
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>
-                  The Service may contain links to third-party websites or
-                  services that are not owned or controlled by Night Network or
-                  DayDreamX. We have no control over, and assume no
-                  responsibility for, the content, privacy policies, or
-                  practices of any third-party websites or services.
-                </p>
-                <p>
-                  You acknowledge and agree that Night Network and DayDreamX
-                  shall not be responsible or liable, directly or indirectly,
-                  for any damage or loss caused or alleged to be caused by or in
-                  connection with the use of any such content, goods, or
-                  services available on or through any such third-party websites
-                  or services.
-                </p>
-              </div>
-            </div>
+					<!-- Third-Party Content -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								8. Third-Party Content and Services
+							</h2>
+							<div class="legal-body">
+								<p>
+									The Service may contain links to third-party
+									websites or services that are not owned or
+									controlled by Night Network or DayDreamX. We
+									have no control over, and assume no
+									responsibility for, the content, privacy
+									policies, or practices of any third-party
+									websites or services.
+								</p>
+								<p>
+									You acknowledge and agree that Night Network
+									and DayDreamX shall not be responsible or
+									liable, directly or indirectly, for any
+									damage or loss caused or alleged to be
+									caused by or in connection with the use of
+									any such content, goods, or services
+									available on or through any such third-party
+									websites or services.
+								</p>
+							</div>
+						</div>
 
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                8.1 Advertising
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>
-                  DayDreamX may display advertisements to support the operation
-                  of the Service. These advertisements are provided by
-                  third-party advertising networks and services.
-                </p>
-                <p class="font-medium text-[var(--main)]">
-                  Important: While we make reasonable efforts to work with
-                  reputable advertising partners, we do not have full control
-                  over the content of advertisements displayed on the Service.
-                </p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>
-                    Night Network is not responsible for the content, accuracy,
-                    or opinions expressed in third-party advertisements
-                  </li>
-                  <li>
-                    Night Network does not endorse any products, services, or
-                    content advertised through the Service
-                  </li>
-                  <li>
-                    Any transactions or interactions with advertisers are solely
-                    between you and the advertiser
-                  </li>
-                  <li>
-                    Night Network is not liable for any damages or losses
-                    resulting from your interaction with advertisements
-                  </li>
-                </ul>
-                <p class="mt-3">
-                  You may have the option to disable advertisements through the
-                  Service settings. If you encounter inappropriate or malicious
-                  advertisements, please report them through our Discord server
-                  or GitLab issues.
-                </p>
-              </div>
-            </div>
-          </section>
+						<div class="legal-card">
+							<h2 class="legal-heading">8.1 Advertising</h2>
+							<div class="legal-body">
+								<p>
+									DayDreamX may display advertisements to
+									support the operation of the Service. These
+									advertisements are provided by third-party
+									advertising networks and services.
+								</p>
+								<p class="legal-paragraph legal-emphasis">
+									Important: While we make reasonable efforts
+									to work with reputable advertising partners,
+									we do not have full control over the content
+									of advertisements displayed on the Service.
+								</p>
+								<ul class="legal-list">
+									<li>
+										Night Network is not responsible for the
+										content, accuracy, or opinions expressed
+										in third-party advertisements
+									</li>
+									<li>
+										Night Network does not endorse any
+										products, services, or content
+										advertised through the Service
+									</li>
+									<li>
+										Any transactions or interactions with
+										advertisers are solely between you and
+										the advertiser
+									</li>
+									<li>
+										Night Network is not liable for any
+										damages or losses resulting from your
+										interaction with advertisements
+									</li>
+								</ul>
+								<p class="legal-paragraph legal-block">
+									You may have the option to disable
+									advertisements through the Service settings.
+									If you encounter inappropriate or malicious
+									advertisements, please report them through
+									our Discord server or GitLab issues.
+								</p>
+							</div>
+						</div>
+					</section>
 
-          <!-- Night+ Premium Service -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                9. Night+ Premium Service
-              </h2>
-              <div class="space-y-4 text-sm text-[var(--text)] leading-relaxed">
-                <p>
-                  <strong>Night+</strong> is our optional premium subscription
-                  service that provides enhanced features and capabilities
-                  beyond the core DayDreamX functionality. Night Network
-                  operates Night+ as a separate service integrated with
-                  DayDreamX.
-                </p>
+					<!-- Night+ Premium Service -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								9. Night+ Premium Service
+							</h2>
+							<div class="legal-body">
+								<p>
+									<strong>Night+</strong> is our optional
+									premium subscription service that provides
+									enhanced features and capabilities beyond
+									the core DayDreamX functionality. Night
+									Network operates Night+ as a separate
+									service integrated with DayDreamX.
+								</p>
 
-                <div>
-                  <h3 class="font-semibold text-[var(--main)] mb-2">
-                    9.1 Core Features (Free - Available to All Users)
-                  </h3>
-                  <p class="mb-2">
-                    The following features are available to all users without a
-                    Night+ subscription:
-                  </p>
-                  <ul class="list-disc list-inside space-y-1 ml-4">
-                    <li>
-                      Full web proxy functionality (Scramjet & Ultraviolet)
-                    </li>
-                    <li>Basic tab management and browsing</li>
-                    <li>Theme customization (accent colors and backgrounds)</li>
-                    <li>Bookmark management (local storage)</li>
-                    <li>Browsing history (local storage)</li>
-                    <li>Tab cloaking and panic key features</li>
-                    <li>Search engine selection</li>
-                    <li>Transport selection (LibCurl, Pulsar)</li>
-                    <li>Basic proxy settings and default WISP servers</li>
-                    <li>Access to games library</li>
-                    <li>Extensions system (user-installed extensions)</li>
-                    <li>Basic customization options</li>
-                    <li>
-                      <strong>Profile System:</strong> Up to 3 browser profiles
-                      (unlimited with Night+)
-                    </li>
-                  </ul>
-                  <p class="mt-3 text-[var(--proto)] text-xs">
-                    Free users are limited to 3 browser profiles. Night+
-                    subscribers have unlimited profile creation.
-                  </p>
-                </div>
+								<div>
+									<h3 class="legal-subheading">
+										9.1 Core Features (Free - Available to
+										All Users)
+									</h3>
+									<p class="legal-paragraph legal-block">
+										The following features are available to
+										all users without a Night+ subscription:
+									</p>
+									<ul class="legal-list legal-list-compact">
+										<li>
+											Full web proxy functionality
+											(Scramjet & Ultraviolet)
+										</li>
+										<li>
+											Basic tab management and browsing
+										</li>
+										<li>
+											Theme customization (accent colors
+											and backgrounds)
+										</li>
+										<li>
+											Bookmark management (local storage)
+										</li>
+										<li>
+											Browsing history (local storage)
+										</li>
+										<li>
+											Tab cloaking and panic key features
+										</li>
+										<li>Search engine selection</li>
+										<li>
+											Transport selection (LibCurl,
+											Pulsar)
+										</li>
+										<li>
+											Basic proxy settings and default
+											WISP servers
+										</li>
+										<li>Access to games library</li>
+										<li>
+											Extensions system (user-installed
+											extensions)
+										</li>
+										<li>Basic customization options</li>
+										<li>
+											<strong>Profile System:</strong> Up
+											to 3 browser profiles (unlimited
+											with Night+)
+										</li>
+									</ul>
+									<p
+										class="legal-paragraph legal-note legal-block"
+									>
+										Free users are limited to 3 browser
+										profiles. Night+ subscribers have
+										unlimited profile creation.
+									</p>
+								</div>
 
-                <div>
-                  <h3 class="font-semibold text-[var(--main)] mb-2">
-                    9.2 Night+ Premium Features
-                  </h3>
-                  <p class="mb-2">
-                    The following features require an active Night+
-                    subscription:
-                  </p>
-                  <ul class="list-disc list-inside space-y-1 ml-4">
-                    <li>
-                      <strong>Cloud Sync:</strong> Synchronize bookmarks,
-                      settings, history, and themes across devices
-                    </li>
-                    <li>
-                      <strong>Unlimited Profiles:</strong> Create more than 3
-                      browser profiles (free users limited to 3 profiles)
-                    </li>
-                    <li>
-                      <strong>Premium Proxy Routing:</strong> Access to advanced
-                      proxy routing features and configurations
-                    </li>
-                    <li>
-                      <strong>Premium WISP Servers:</strong> Access to
-                      exclusive, high-performance WISP proxy servers with better
-                      speeds and reliability
-                    </li>
-                    <li>
-                      <strong>Premium Backend Servers:</strong> Access to
-                      optimized proxy backends for improved performance
-                    </li>
-                    <li>
-                      <strong>Premium Themes:</strong> Access to exclusive theme
-                      presets and advanced customization options
-                    </li>
-                    <li>
-                      <strong>Advanced Extensions:</strong> Access to curated
-                      premium extensions from the Night Store
-                    </li>
-                    <li>
-                      <strong>Enhanced Storage:</strong> Increased storage
-                      limits for bookmarks, history, and cached data
-                    </li>
-                    <li>
-                      <strong>Priority Support:</strong> Faster response times
-                      and dedicated support channels
-                    </li>
-                    <li>
-                      <strong>Ad-Free Experience:</strong> Remove all
-                      advertisements from the service
-                    </li>
-                    <li>
-                      <strong>Advanced Analytics:</strong> Detailed browsing
-                      statistics and insights (privacy-respecting)
-                    </li>
-                    <li>
-                      <strong>Custom Domains:</strong> Ability to use custom
-                      domain names for your DayDreamX instance
-                    </li>
-                    <li>
-                      <strong>Beta Features:</strong> Early access to new
-                      features and experimental functionality
-                    </li>
-                    <li>
-                      <strong>Profile Customization:</strong> Custom profile
-                      badges, avatars, and personalization
-                    </li>
-                    <li>
-                      <strong>Extended History:</strong> Longer history
-                      retention periods
-                    </li>
-                    <li>
-                      <strong>Premium Store Access:</strong> Exclusive themes,
-                      extensions, and content in the Night Store
-                    </li>
-                  </ul>
-                  <p class="mt-3 text-[var(--proto)] text-xs">
-                    Night+ feature availability may vary and is subject to
-                    change. We will make reasonable efforts to notify
-                    subscribers of significant changes to premium features.
-                  </p>
-                  <p class="mt-2 text-[var(--proto)] text-xs">
-                    <strong>Note:</strong> Premium proxy and WISP server URLs
-                    are not publicly disclosed to prevent abuse and ensure
-                    quality of service for paying subscribers. These servers are
-                    dynamically fetched from secure endpoints and are only
-                    accessible with valid Night+ authentication.
-                  </p>
-                </div>
+								<div>
+									<h3 class="legal-subheading">
+										9.2 Night+ Premium Features
+									</h3>
+									<p class="legal-paragraph legal-block">
+										The following features require an active
+										Night+ subscription:
+									</p>
+									<ul class="legal-list legal-list-compact">
+										<li>
+											<strong>Cloud Sync:</strong>
+											Synchronize bookmarks, settings,
+											history, and themes across devices
+										</li>
+										<li>
+											<strong>Unlimited Profiles:</strong>
+											Create more than 3 browser profiles
+											(free users limited to 3 profiles)
+										</li>
+										<li>
+											<strong
+												>Premium Proxy Routing:</strong
+											>
+											Access to advanced proxy routing
+											features and configurations
+										</li>
+										<li>
+											<strong
+												>Premium WISP Servers:</strong
+											>
+											Access to exclusive,
+											high-performance WISP proxy servers
+											with better speeds and reliability
+										</li>
+										<li>
+											<strong
+												>Premium Backend
+												Servers:</strong
+											>
+											Access to optimized proxy backends
+											for improved performance
+										</li>
+										<li>
+											<strong>Premium Themes:</strong>
+											Access to exclusive theme presets
+											and advanced customization options
+										</li>
+										<li>
+											<strong
+												>Advanced Extensions:</strong
+											>
+											Access to curated premium extensions
+											from the Night Store
+										</li>
+										<li>
+											<strong>Enhanced Storage:</strong>
+											Increased storage limits for
+											bookmarks, history, and cached data
+										</li>
+										<li>
+											<strong>Priority Support:</strong>
+											Faster response times and dedicated
+											support channels
+										</li>
+										<li>
+											<strong>Ad-Free Experience:</strong>
+											Remove all advertisements from the
+											service
+										</li>
+										<li>
+											<strong>Advanced Analytics:</strong>
+											Detailed browsing statistics and
+											insights (privacy-respecting)
+										</li>
+										<li>
+											<strong>Custom Domains:</strong>
+											Ability to use custom domain names
+											for your DayDreamX instance
+										</li>
+										<li>
+											<strong>Beta Features:</strong>
+											Early access to new features and
+											experimental functionality
+										</li>
+										<li>
+											<strong
+												>Profile Customization:</strong
+											>
+											Custom profile badges, avatars, and
+											personalization
+										</li>
+										<li>
+											<strong>Extended History:</strong>
+											Longer history retention periods
+										</li>
+										<li>
+											<strong
+												>Premium Store Access:</strong
+											>
+											Exclusive themes, extensions, and
+											content in the Night Store
+										</li>
+									</ul>
+									<p
+										class="legal-paragraph legal-note legal-block"
+									>
+										Night+ feature availability may vary and
+										is subject to change. We will make
+										reasonable efforts to notify subscribers
+										of significant changes to premium
+										features.
+									</p>
+									<p
+										class="legal-paragraph legal-note legal-block"
+									>
+										<strong>Note:</strong> Premium proxy and
+										WISP server URLs are not publicly
+										disclosed to prevent abuse and ensure
+										quality of service for paying
+										subscribers. These servers are
+										dynamically fetched from secure
+										endpoints and are only accessible with
+										valid Night+ authentication.
+									</p>
+								</div>
 
-                <div>
-                  <h3 class="font-semibold text-[var(--main)] mb-2">
-                    9.3 Night+ Subscription Terms
-                  </h3>
-                  <ul class="list-disc list-inside space-y-2 ml-4">
-                    <li>
-                      Night+ is billed on a subscription basis (monthly,
-                      annually, or other periods as offered)
-                    </li>
-                    <li>
-                      Subscriptions automatically renew unless cancelled before
-                      the renewal date
-                    </li>
-                    <li>
-                      You can cancel your subscription at any time through your
-                      Night+ account settings
-                    </li>
-                    <li>
-                      Upon cancellation, you will retain access to premium
-                      features until the end of your paid period
-                    </li>
-                    <li>
-                      Refunds are handled on a case-by-case basis in accordance
-                      with applicable law
-                    </li>
-                    <li>
-                      Night Network reserves the right to modify pricing with
-                      reasonable notice to active subscribers
-                    </li>
-                    <li>
-                      Promotional pricing may be offered and is subject to
-                      specific terms
-                    </li>
-                  </ul>
-                </div>
+								<div>
+									<h3 class="legal-subheading">
+										9.3 Night+ Subscription Terms
+									</h3>
+									<ul class="legal-list">
+										<li>
+											Night+ is billed on a subscription
+											basis (monthly, annually, or other
+											periods as offered)
+										</li>
+										<li>
+											Subscriptions automatically renew
+											unless cancelled before the renewal
+											date
+										</li>
+										<li>
+											You can cancel your subscription at
+											any time through your Night+ account
+											settings
+										</li>
+										<li>
+											Upon cancellation, you will retain
+											access to premium features until the
+											end of your paid period
+										</li>
+										<li>
+											Refunds are handled on a
+											case-by-case basis in accordance
+											with applicable law
+										</li>
+										<li>
+											Night Network reserves the right to
+											modify pricing with reasonable
+											notice to active subscribers
+										</li>
+										<li>
+											Promotional pricing may be offered
+											and is subject to specific terms
+										</li>
+									</ul>
+								</div>
 
-                <div>
-                  <h3 class="font-semibold text-[var(--main)] mb-2">
-                    9.4 Night+ Account Requirements
-                  </h3>
-                  <p class="mb-2">To use Night+ features, you must:</p>
-                  <ul class="list-disc list-inside space-y-2 ml-4">
-                    <li>Create a Night+ account with valid credentials</li>
-                    <li>Maintain an active subscription in good standing</li>
-                    <li>
-                      Comply with all terms of service and acceptable use
-                      policies
-                    </li>
-                    <li>Not share your account credentials with others</li>
-                    <li>
-                      Not attempt to circumvent payment or access restrictions
-                    </li>
-                  </ul>
-                  <p class="mt-3 font-medium text-[var(--main)]">
-                    Violation of Night+ terms may result in immediate suspension
-                    or termination of your premium subscription without refund.
-                  </p>
-                </div>
+								<div>
+									<h3 class="legal-subheading">
+										9.4 Night+ Account Requirements
+									</h3>
+									<p class="legal-paragraph legal-block">
+										To use Night+ features, you must:
+									</p>
+									<ul class="legal-list">
+										<li>
+											Create a Night+ account with valid
+											credentials
+										</li>
+										<li>
+											Maintain an active subscription in
+											good standing
+										</li>
+										<li>
+											Comply with all terms of service and
+											acceptable use policies
+										</li>
+										<li>
+											Not share your account credentials
+											with others
+										</li>
+										<li>
+											Not attempt to circumvent payment or
+											access restrictions
+										</li>
+									</ul>
+									<p
+										class="legal-paragraph legal-emphasis legal-block"
+									>
+										Violation of Night+ terms may result in
+										immediate suspension or termination of
+										your premium subscription without
+										refund.
+									</p>
+								</div>
 
-                <div>
-                  <h3 class="font-semibold text-[var(--main)] mb-2">
-                    9.5 Night+ Service Availability
-                  </h3>
-                  <p>
-                    While we strive to maintain 100% uptime for Night+ services,
-                    we do not guarantee uninterrupted access. Night+ features
-                    may be temporarily unavailable due to maintenance, technical
-                    issues, or circumstances beyond our control. Night Network
-                    is not liable for any losses resulting from Night+ service
-                    interruptions.
-                  </p>
-                </div>
+								<div>
+									<h3 class="legal-subheading">
+										9.5 Night+ Service Availability
+									</h3>
+									<p>
+										While we strive to maintain 100% uptime
+										for Night+ services, we do not guarantee
+										uninterrupted access. Night+ features
+										may be temporarily unavailable due to
+										maintenance, technical issues, or
+										circumstances beyond our control. Night
+										Network is not liable for any losses
+										resulting from Night+ service
+										interruptions.
+									</p>
+								</div>
 
-                <div>
-                  <h3 class="font-semibold text-[var(--main)] mb-2">
-                    9.6 Unauthorized Access to Night+ Features
-                  </h3>
-                  <p class="mb-2 font-medium text-[var(--main)] uppercase">
-                    Attempting to access Night+ premium features without a valid
-                    subscription is strictly prohibited and constitutes a
-                    material breach of these Terms.
-                  </p>
-                  <p class="mb-2">This includes but is not limited to:</p>
-                  <ul class="list-disc list-inside space-y-2 ml-4">
-                    <li>
-                      Using cracked, modified, or pirated versions of DayDreamX
-                      that bypass Night+ authentication
-                    </li>
-                    <li>
-                      Sharing Night+ account credentials to grant unauthorized
-                      access
-                    </li>
-                    <li>
-                      Reverse engineering Night+ API endpoints or authentication
-                      systems
-                    </li>
-                    <li>
-                      Using automated tools, scripts, or bots to access premium
-                      features without payment
-                    </li>
-                    <li>
-                      Exploiting bugs or vulnerabilities to gain unauthorized
-                      access to premium features
-                    </li>
-                    <li>
-                      Creating or distributing tools, patches, or modifications
-                      that circumvent Night+ restrictions
-                    </li>
-                    <li>
-                      Attempting to extract, expose, or share premium WISP
-                      server URLs or proxy backend endpoints
-                    </li>
-                    <li>
-                      Bypassing profile limits or other feature restrictions
-                    </li>
-                    <li>
-                      Using intercepted or stolen Night+ authentication tokens
-                    </li>
-                  </ul>
-                  <p class="mt-3">
-                    Violations will result in immediate account termination,
-                    service ban, and may be subject to legal action including
-                    DMCA takedowns and civil prosecution.
-                  </p>
-                  <p class="mt-2 text-[var(--proto)] text-xs">
-                    <strong>Security Notice:</strong> Premium server endpoints
-                    and proxy configurations are considered proprietary
-                    infrastructure. Attempting to access, extract, or
-                    redistribute premium server URLs without authorization is a
-                    violation of our intellectual property rights and computer
-                    fraud laws.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
+								<div>
+									<h3 class="legal-subheading">
+										9.6 Unauthorized Access to Night+
+										Features
+									</h3>
+									<p
+										class="legal-paragraph legal-emphasis legal-uppercase legal-block"
+									>
+										Attempting to access Night+ premium
+										features without a valid subscription is
+										strictly prohibited and constitutes a
+										material breach of these Terms.
+									</p>
+									<p class="legal-paragraph legal-block">
+										This includes but is not limited to:
+									</p>
+									<ul class="legal-list">
+										<li>
+											Using cracked, modified, or pirated
+											versions of DayDreamX that bypass
+											Night+ authentication
+										</li>
+										<li>
+											Sharing Night+ account credentials
+											to grant unauthorized access
+										</li>
+										<li>
+											Reverse engineering Night+ API
+											endpoints or authentication systems
+										</li>
+										<li>
+											Using automated tools, scripts, or
+											bots to access premium features
+											without payment
+										</li>
+										<li>
+											Exploiting bugs or vulnerabilities
+											to gain unauthorized access to
+											premium features
+										</li>
+										<li>
+											Creating or distributing tools,
+											patches, or modifications that
+											circumvent Night+ restrictions
+										</li>
+										<li>
+											Attempting to extract, expose, or
+											share premium WISP server URLs or
+											proxy backend endpoints
+										</li>
+										<li>
+											Bypassing profile limits or other
+											feature restrictions
+										</li>
+										<li>
+											Using intercepted or stolen Night+
+											authentication tokens
+										</li>
+									</ul>
+									<p class="legal-paragraph legal-block">
+										Violations will result in immediate
+										account termination, service ban, and
+										may be subject to legal action including
+										DMCA takedowns and civil prosecution.
+									</p>
+									<p
+										class="legal-paragraph legal-note legal-block"
+									>
+										<strong>Security Notice:</strong>
+										Premium server endpoints and proxy
+										configurations are considered
+										proprietary infrastructure. Attempting
+										to access, extract, or redistribute
+										premium server URLs without
+										authorization is a violation of our
+										intellectual property rights and
+										computer fraud laws.
+									</p>
+								</div>
+							</div>
+						</div>
+					</section>
 
-          <!-- Termination -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                10. Termination
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>
-                  We reserve the right to terminate or suspend your access to
-                  the Service immediately, without prior notice or liability,
-                  for any reason, including without limitation if you breach
-                  these Terms.
-                </p>
-                <p>
-                  Upon termination, your right to use the Service will
-                  immediately cease. All provisions of the Terms which by their
-                  nature should survive termination shall survive termination.
-                </p>
-                <p class="mt-3">
-                  <strong>Night+ Subscription Termination:</strong> If your
-                  DayDreamX account is terminated for violation of these Terms,
-                  your Night+ subscription will be immediately cancelled without
-                  refund. This includes terminations due to unauthorized access
-                  attempts, Night+ circumvention, or other violations.
-                </p>
-              </div>
-            </div>
-          </section>
+					<!-- Termination -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">10. Termination</h2>
+							<div class="legal-body">
+								<p>
+									We reserve the right to terminate or suspend
+									your access to the Service immediately,
+									without prior notice or liability, for any
+									reason, including without limitation if you
+									breach these Terms.
+								</p>
+								<p>
+									Upon termination, your right to use the
+									Service will immediately cease. All
+									provisions of the Terms which by their
+									nature should survive termination shall
+									survive termination.
+								</p>
+								<p class="legal-paragraph legal-block">
+									<strong
+										>Night+ Subscription
+										Termination:</strong
+									>
+									If your DayDreamX account is terminated for
+									violation of these Terms, your Night+
+									subscription will be immediately cancelled
+									without refund. This includes terminations
+									due to unauthorized access attempts, Night+
+									circumvention, or other violations.
+								</p>
+							</div>
+						</div>
+					</section>
 
-          <!-- Governing Law -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                11. Governing Law & Jurisdiction
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p class="font-medium text-[var(--main)]">
-                  Our production servers are located in the
-                  <strong>United States and Canada</strong>. These Terms and
-                  your use of the Service are governed by and construed in
-                  accordance with the laws of the United States and Canada.
-                </p>
-                <p>By using DayDreamX, you acknowledge and agree that:</p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>
-                    Our services are subject to U.S. and Canadian federal,
-                    state, and provincial laws
-                  </li>
-                  <li>
-                    Any legal disputes will be subject to the exclusive
-                    jurisdiction of courts in the United States or Canada
-                  </li>
-                  <li>
-                    We comply with valid legal requests from U.S. and Canadian
-                    authorities
-                  </li>
-                  <li>
-                    Data protection and privacy regulations of these
-                    jurisdictions apply to our operations
-                  </li>
-                </ul>
-                <p class="mt-3">
-                  Our failure to enforce any right or provision of these Terms
-                  will not be considered a waiver of those rights. If any
-                  provision of these Terms is held to be invalid or
-                  unenforceable by a court, the remaining provisions will remain
-                  in effect.
-                </p>
-              </div>
-            </div>
-          </section>
+					<!-- Governing Law -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								11. Governing Law & Jurisdiction
+							</h2>
+							<div class="legal-body">
+								<p class="legal-paragraph legal-emphasis">
+									Our production servers are located in the
+									<strong>United States and Canada</strong>.
+									These Terms and your use of the Service are
+									governed by and construed in accordance with
+									the laws of the United States and Canada.
+								</p>
+								<p>
+									By using DayDreamX, you acknowledge and
+									agree that:
+								</p>
+								<ul class="legal-list">
+									<li>
+										Our services are subject to U.S. and
+										Canadian federal, state, and provincial
+										laws
+									</li>
+									<li>
+										Any legal disputes will be subject to
+										the exclusive jurisdiction of courts in
+										the United States or Canada
+									</li>
+									<li>
+										We comply with valid legal requests from
+										U.S. and Canadian authorities
+									</li>
+									<li>
+										Data protection and privacy regulations
+										of these jurisdictions apply to our
+										operations
+									</li>
+								</ul>
+								<p class="legal-paragraph legal-block">
+									Our failure to enforce any right or
+									provision of these Terms will not be
+									considered a waiver of those rights. If any
+									provision of these Terms is held to be
+									invalid or unenforceable by a court, the
+									remaining provisions will remain in effect.
+								</p>
+							</div>
+						</div>
+					</section>
 
-          <!-- Changes to Terms -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                12. Changes to Terms
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>
-                  We reserve the right to modify or replace these Terms at any
-                  time at our sole discretion. We will make reasonable efforts
-                  to notify users of any material changes.
-                </p>
-                <p>
-                  By continuing to access or use the Service after revisions
-                  become effective, you agree to be bound by the revised terms.
-                </p>
-              </div>
-            </div>
-          </section>
+					<!-- Changes to Terms -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">12. Changes to Terms</h2>
+							<div class="legal-body">
+								<p>
+									We reserve the right to modify or replace
+									these Terms at any time at our sole
+									discretion. We will make reasonable efforts
+									to notify users of any material changes.
+								</p>
+								<p>
+									By continuing to access or use the Service
+									after revisions become effective, you agree
+									to be bound by the revised terms.
+								</p>
+							</div>
+						</div>
+					</section>
 
-          <!-- Contact -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                13. Contact Information
-              </h2>
-              <div class="space-y-4 text-sm text-[var(--text)] leading-relaxed">
-                <p>
-                  If you have any questions about these Terms, please contact us
-                  through the following channels:
-                </p>
+					<!-- Contact -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								13. Contact Information
+							</h2>
+							<div class="legal-body">
+								<p>
+									If you have any questions about these Terms,
+									please contact us through the following
+									channels:
+								</p>
 
-                <div>
-                  <h3 class="font-semibold text-[var(--main)] mb-2">
-                    General Inquiries
-                  </h3>
-                  <ul class="space-y-2">
-                    <li>
-                      <strong>Discord Server:</strong>
-                      <a
-                        href="https://discord.night-x.com"
-                        class="text-[var(--main)] hover:text-[var(--main)]/80"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        https://discord.night-x.com
-                      </a>
-                    </li>
-                    <li>
-                      <strong>GitLab Repository:</strong>
-                      <a
-                        href="https://gitlab.com/nightnetwork/daydreamx"
-                        class="text-[var(--main)] hover:text-[var(--main)]/80"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        https://gitlab.com/nightnetwork/daydreamx
-                      </a>
-                    </li>
-                    <li>
-                      <strong>GitLab Issues:</strong> For bug reports, feature
-                      requests, or technical questions, open an issue on our
-                      repository
-                    </li>
-                  </ul>
-                </div>
+								<div>
+									<h3 class="legal-subheading">
+										General Inquiries
+									</h3>
+									<ul class="legal-list legal-list-plain">
+										<li>
+											<strong>Discord Server:</strong>
+											<a
+												href="https://discord.night-x.com"
+												class="legal-link"
+												target="_blank"
+												rel="noopener noreferrer"
+											>
+												https://discord.night-x.com
+											</a>
+										</li>
+										<li>
+											<strong>GitLab Repository:</strong>
+											<a
+												href="https://gitlab.com/nightnetwork/daydreamx"
+												class="legal-link"
+												target="_blank"
+												rel="noopener noreferrer"
+											>
+												https://gitlab.com/nightnetwork/daydreamx
+											</a>
+										</li>
+										<li>
+											<strong>GitLab Issues:</strong> For
+											bug reports, feature requests, or
+											technical questions, open an issue
+											on our repository
+										</li>
+									</ul>
+								</div>
 
-                <div>
-                  <h3 class="font-semibold text-[var(--main)] mb-2">
-                    DMCA & Copyright Notices
-                  </h3>
-                  <p class="mb-2">
-                    If you believe that content accessible through DayDreamX
-                    infringes your copyright, please send a DMCA notice with the
-                    following information:
-                  </p>
-                  <ul class="list-disc list-inside space-y-1 ml-4 mb-3">
-                    <li>
-                      Identification of the copyrighted work claimed to have
-                      been infringed
-                    </li>
-                    <li>
-                      Identification of the material that is claimed to be
-                      infringing
-                    </li>
-                    <li>
-                      Your contact information (address, telephone number, and
-                      email)
-                    </li>
-                    <li>
-                      A statement that you have a good faith belief that use of
-                      the material is not authorized
-                    </li>
-                    <li>
-                      A statement that the information in the notification is
-                      accurate
-                    </li>
-                    <li>Your physical or electronic signature</li>
-                  </ul>
-                  <p>
-                    <strong>DMCA Contact:</strong> Please submit DMCA notices
-                    through our Discord server or open an issue on our GitLab
-                    repository labeled "DMCA Notice". We respond to valid DMCA
-                    notices in accordance with applicable law.
-                  </p>
-                  <p class="mt-2 text-[var(--proto)] text-xs">
-                    Note: DayDreamX is a proxy service. We do not host or
-                    control third-party content accessed through our service.
-                    DMCA notices should typically be directed to the original
-                    content host.
-                  </p>
-                </div>
+								<div>
+									<h3 class="legal-subheading">
+										DMCA & Copyright Notices
+									</h3>
+									<p class="legal-paragraph legal-block">
+										If you believe that content accessible
+										through DayDreamX infringes your
+										copyright, please send a DMCA notice
+										with the following information:
+									</p>
+									<ul class="legal-list legal-list-compact">
+										<li>
+											Identification of the copyrighted
+											work claimed to have been infringed
+										</li>
+										<li>
+											Identification of the material that
+											is claimed to be infringing
+										</li>
+										<li>
+											Your contact information (address,
+											telephone number, and email)
+										</li>
+										<li>
+											A statement that you have a good
+											faith belief that use of the
+											material is not authorized
+										</li>
+										<li>
+											A statement that the information in
+											the notification is accurate
+										</li>
+										<li>
+											Your physical or electronic
+											signature
+										</li>
+									</ul>
+									<p>
+										<strong>DMCA Contact:</strong> Please
+										submit DMCA notices through our Discord
+										server or open an issue on our GitLab
+										repository labeled "DMCA Notice". We
+										respond to valid DMCA notices in
+										accordance with applicable law.
+									</p>
+									<p
+										class="legal-paragraph legal-note legal-block"
+									>
+										Note: DayDreamX is a proxy service. We
+										do not host or control third-party
+										content accessed through our service.
+										DMCA notices should typically be
+										directed to the original content host.
+									</p>
+								</div>
 
-                <div>
-                  <h3 class="font-semibold text-[var(--main)] mb-2">
-                    Legal & Compliance
-                  </h3>
-                  <p>
-                    For legal inquiries, compliance questions, or law
-                    enforcement requests, please contact us through our Discord
-                    server with the subject line "Legal Inquiry" or open a
-                    confidential issue on our GitLab repository.
-                  </p>
-                  <p class="mt-2">
-                    We comply with valid legal requests in accordance with U.S.
-                    and Canadian law.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
+								<div>
+									<h3 class="legal-subheading">
+										Legal & Compliance
+									</h3>
+									<p>
+										For legal inquiries, compliance
+										questions, or law enforcement requests,
+										please contact us through our Discord
+										server with the subject line "Legal
+										Inquiry" or open a confidential issue on
+										our GitLab repository.
+									</p>
+									<p class="legal-paragraph legal-block">
+										We comply with valid legal requests in
+										accordance with U.S. and Canadian law.
+									</p>
+								</div>
+							</div>
+						</div>
+					</section>
 
-          <!-- Footer -->
-          <div class="text-center py-8 text-sm text-[var(--proto)]">
-            <p>© 2025 DayDreamX. All rights reserved.</p>
-            <div class="mt-4 flex justify-center gap-4">
-              <a
-                href="../privacy/"
-                class="text-[var(--main)] hover:text-[var(--main)]/80"
-              >
-                Privacy Policy
-              </a>
-              <span>•</span>
-              <a
-                href="../terms/"
-                class="text-[var(--main)] hover:text-[var(--main)]/80"
-              >
-                Terms of Service
-              </a>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
-  </body>
+					<!-- Footer -->
+					<footer class="legal-footer">
+						<p>© 2025 DayDreamX. All rights reserved.</p>
+						<div class="legal-footer-links">
+							<a href="../privacy/" class="legal-link">
+								Privacy Policy
+							</a>
+							<span>•</span>
+							<a href="../terms/" class="legal-link">
+								Terms of Service
+							</a>
+						</div>
+					</footer>
+				</div>
+			</main>
+		</div>
+	</body>
 </html>

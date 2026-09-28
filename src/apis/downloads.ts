@@ -267,6 +267,7 @@ export class DownloadsManager {
     };
     this.items.set(id, item);
     this.emit({ type: 'created', item: { ...item } });
+    (globalThis as any).__ddxNotify?.(`Download started: ${item.filename}`, { time: 3000 });
     this.enqueueWrite();
 
     const controller: DownloadController = {
@@ -326,6 +327,7 @@ export class DownloadsManager {
       item.fileSize = item.totalBytes;
     }
     this.emit({ type: 'changed', delta });
+    (globalThis as any).__ddxNotify?.(`Download complete: ${item.filename}`, { time: 4000 });
     this.enqueueWrite();
   }
 

@@ -26,8 +26,18 @@ import { BootReadiness } from './boot/readiness';
 import { backgroundInit } from './boot/backgroundInit';
 import { featureInit } from './boot/featureInit';
 import { defineLazyGlobal } from './boot/lazyGlobals';
+import { globals as __ddxGlobals, buildConfig } from '@core/shared/build-runtime';
+import type * as ScramjetControllerModule from '@mercuryworkshop/scramjet-controller';
 
-const { Controller } = $scramjetController;
+// Controller capture is deferred into the DOMContentLoaded handler below so
+// that any stale service worker (from a previous build with a different seed)
+// gets a chance to unregister and reload the page FIRST. If we captured at
+// module-eval time and the stale SW served a cached api.js writing to the OLD
+// slot name, the seeded slot lookup would return undefined and throw before
+// SW cleanup could run. The declaration lives here so the DOMContentLoaded
+// closure can assign it — every downstream consumer of `Controller` sits
+// inside that handler.
+let Controller: typeof ScramjetControllerModule.Controller | undefined;
 
 document.addEventListener('DOMContentLoaded', async () => {
 	const insideTerbium = typeof window !== 'undefined' && !!window.__terbium;
@@ -63,9 +73,52 @@ document.addEventListener('DOMContentLoaded', async () => {
 		console.log('[Main] Inside Terbium — skipping foreign-SW cleanup');
 	}
 
-	const container = document.getElementById('browser-container') as HTMLDivElement | null;
+	// Runtime handoff: capture the controller from its seeded non-enum slot,
+	// then delete the slot so the rest of the app can't reach it by name.
+	// The slot is installed by the pre-built controller IIFEs (rewritten in
+	// place by `srv/vite/handoff-postcopy.ts`), which expose the underlying
+	// value through the Proxy's `"value"` key. Deferring capture until here
+	// gives the stale-SW cleanup above a chance to reload the page first if
+	// a previous build's SW is still active and would serve cached api.js.
+	{
+		const slot = __ddxGlobals().scramjetController;
+		const proxy = (self as unknown as Record<string, { value?: unknown } | undefined>)[slot];
+		const captured = proxy?.value as typeof ScramjetControllerModule | undefined;
+		if (!captured) {
+			// Diagnostic: report what state the slot is in so we can tell
+			// whether api.js didn't run, ran but the writer failed, or ran
+			// but body threw before mutating __v.
+			const rawEntry = (self as unknown as Record<string, unknown>)[slot];
+			const globalNames = Object.getOwnPropertyNames(self)
+				.filter(name => name.length > 5 && name.startsWith('_'))
+				.slice(0, 20);
+			console.error(
+				'[Main] Runtime controller slot missing.\n' +
+					'  expected slot name: ' + slot + '\n' +
+					'  self[slot] typeof: ' + (typeof rawEntry) + '\n' +
+					'  self[slot] value:  ' + (rawEntry === undefined ? '<undefined>' : String(rawEntry)) + '\n' +
+					'  candidate seeded globals on self: ' + JSON.stringify(globalNames) + '\n' +
+					'  cover.provider: ' + buildConfig().cover.provider + '\n' +
+					'  buildId: ' + buildConfig().buildId + '\n' +
+					'  Fix: check DevTools Network for api.js load status and any thrown errors from config.js/s.js/api.js.',
+			);
+			return;
+		}
+		Controller = captured.Controller;
+		// NOTE: do NOT delete the slot. Multiple independent consumers read
+		// `$scramjetController` (rewritten to this seeded slot) AFTER boot —
+		// e.g. `src/apis/scriptInjection/installer.ts` and the http-cache
+		// plugin both look up `.value.Frame` / `.value.ManagedPlugin`. The
+		// slot is already `enumerable: false` (see handoff-transform), so it
+		// stays hidden from `Object.keys(window)` without deleting it.
+		// Deleting it here broke the script injector and cache plugin, which
+		// left the proxied SW responses without their hooks → the iframe
+		// failed with ERR_BLOCKED_BY_RESPONSE.
+	}
+
+	const container = document.getElementById('app-host') as HTMLDivElement | null;
 	if (!container) {
-		console.error('Browser container not found');
+		console.error('App host container not found');
 		return;
 	}
 
@@ -168,7 +221,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 	const proxySetting = 'sj' as const;
 	var swConfig = {
 		sj: {
-			file: resolvePath('sw.js'),
+			file: resolvePath(buildConfig().cover.worker),
 			config: window.__scramjet$config,
 			func: async () => {
 				await proxy.setTransports();
@@ -219,12 +272,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 	void tryRefreshOnBoot();
 
-	tabs.createTab('ddx://newtab/');
-
 	window.addEventListener('beforeunload', () => {
 		window.tabs.saveSession();
 	});
 
+	// Initial tab creation is owned by featureInit's startup-behavior logic
+	// (newtab / custom / restore); see src/boot/featureInit.ts. Do not create
+	// a tab here too, or every boot opens two tabs.
 	featureInit(readiness, bgPromise, { tabs, proto, items, proxy, swConfig, proxySetting }).catch(err => {
 		console.error('[boot] feature init failed:', err);
 	});

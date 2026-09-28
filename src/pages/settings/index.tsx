@@ -3,7 +3,10 @@ import "@pages/shared/themeInit";
 import { createIcons, icons } from "lucide";
 import { settingsSearch } from "./components/settingsSearch";
 import { openInNewTab } from "./data/host";
+import { coverIdentity } from "@core/shared/build-runtime";
 import type { SectionModule } from "./sections/types";
+
+const PRODUCT_NAME = coverIdentity().product;
 
 interface RailItem {
   id: string;
@@ -27,7 +30,7 @@ const RAIL: RailItem[] = [
   { id: "reset", label: "Reset settings", icon: "rotate-ccw" },
   { id: "__divider2__", label: "", icon: "", divider: true },
   { id: "extensions", label: "Extensions", icon: "puzzle", external: true, href: "ddx://extensions/" },
-  { id: "about", label: "About DDX", icon: "info" },
+  { id: "about", label: `About ${PRODUCT_NAME}`, icon: "info" },
 ];
 
 const SECTION_LOADERS: Record<string, () => Promise<SectionModule>> = {

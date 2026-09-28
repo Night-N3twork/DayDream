@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { HANDLERS } from '../../../src/apis/nyxBridge/handlers';
 import '../../../src/apis/nyxBridge/handlers/windows';
 
@@ -13,7 +13,21 @@ describe('windows', () => {
 		const arr = await HANDLERS['windows.getAll']!(ctxNoTabs, undefined) as any[];
 		expect(arr.length).toBe(1);
 	});
-	it('create rejects', async () => {
-		await expect(HANDLERS['windows.create']!(ctxNoTabs, {})).rejects.toMatchObject({ code: 'not_supported' });
+	it('create opens a tab in the current window', async () => {
+		const createTab = vi.fn(async () => 'tab-1');
+		const tab = { id: 1, url: 'https://nyx.ampscat.dev', windowId: 1 };
+		const ctx: any = {
+			tabs: { createTab },
+			tabResolver: {
+				all: () => [],
+				toNum: (id: string) => id === 'tab-1' ? 1 : -1,
+				info: () => tab,
+			},
+		};
+
+		const window = await HANDLERS['windows.create']!(ctx, { url: 'https://nyx.ampscat.dev' }) as any;
+
+		expect(createTab).toHaveBeenCalledWith('https://nyx.ampscat.dev');
+		expect(window.tabs).toEqual([tab]);
 	});
 });

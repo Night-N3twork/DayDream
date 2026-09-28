@@ -9,7 +9,14 @@ export function criticalRender(container: HTMLDivElement): {
   shadowRoot: ShadowRoot;
   root: HTMLDivElement;
 } {
-  const shadowRoot = container.attachShadow({ mode: 'open' });
+  // Closed shadow root in production — external content scripts and page
+  // code can't reach the shell subtree via `container.shadowRoot` (returns
+  // null) or via `document.body.textContent` scrapes. In dev we use `open`
+  // so Playwright / DevTools can pierce the tree for interactive debugging;
+  // `patchDocument` redirects `document.querySelector`/`getElementById`
+  // regardless of mode, so shell code is unaffected either way.
+  const shadowMode = import.meta.env.DEV ? 'open' : 'closed';
+  const shadowRoot = container.attachShadow({ mode: shadowMode });
 
   shadowRoot.append(
     Object.assign(document.createElement('style'), {
@@ -23,7 +30,17 @@ export function criticalRender(container: HTMLDivElement): {
 
   const shadowDocument = document.implementation.createHTMLDocument('');
   patchDocument(shadowRoot, shadowDocument);
-  window.d = shadowRoot;
+
+  // Expose the shadow root to shell-scope code (existing consumers use
+  // `window.d.querySelector(...)` for shadow-scoped DOM access), but as a
+  // non-enumerable, non-configurable property so `Object.keys(window)`
+  // doesn't advertise a ShadowRoot handle.
+  Object.defineProperty(window, 'd', {
+    value: shadowRoot,
+    writable: false,
+    configurable: false,
+    enumerable: false,
+  });
 
   const root = shadowRoot.getElementById('root') as HTMLDivElement;
   new Render(root);

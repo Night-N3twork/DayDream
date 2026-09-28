@@ -93,9 +93,19 @@ export async function featureInit(
 		(await settingsAPI.getItem('startupCustomUrl')) || '';
 
 	if (startupBehavior === 'restore') {
-		await window.tabs.restoreSession();
+		const restored = await window.tabs.restoreSession();
+		// If no persisted session exists (fresh install / cleared cache),
+		// fall back to a new tab so the app never boots into a zero-tab
+		// state — which leaves the shell rendered but content-less.
+		if (!restored) window.tabs.createTab('ddx://newtab/');
 	} else if (startupBehavior === 'custom' && startupCustomUrl) {
 		window.tabs.createTab(startupCustomUrl);
+	} else {
+		// Default (startupBehavior === 'newtab' or unset): create the initial
+		// newtab. Without this, `startupBehavior === 'newtab'` was a no-op and
+		// the app came up with zero tabs (visible only under bootstrap /
+		// fresh-install where no session was persisted).
+		window.tabs.createTab('ddx://newtab/');
 	}
 
 	const functions = new Functions(tabs, proto);

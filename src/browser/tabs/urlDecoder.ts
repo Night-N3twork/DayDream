@@ -98,11 +98,27 @@ export function decodeProxiedUrl(url: string, proxy?: any): string {
 			if (swc && ps) {
 				const cfg = swc[ps];
 				const prefix = cfg?.config?.prefix;
-				if (prefix && url.includes(prefix)) {
-					const path = new URL(url).pathname.replace(prefix, '');
-					if (resolvedProxy?.decodeUrl) {
-						const decoded = resolvedProxy.decodeUrl(path);
-						if (decoded) return stripScramjetParams(decoded);
+				if (prefix && url.includes(prefix) && resolvedProxy?.decodeUrl) {
+					// The encoded URL is ALWAYS the final path segment. The bare
+					// config prefix omits the controller-id and frame-id segments,
+					// so slicing at it leaves `<controllerId>/<frameId>/<token>`;
+					// a codec payload never contains `/`, so we must decode only
+					// the last segment (mirrors Proxy.stripPrefixSegments). Feeding
+					// the whole remainder to the codec yields garbage.
+					//
+					// This fallback matters because the per-frame strategies above
+					// are skipped whenever `controller.frames` hasn't registered
+					// the frame yet — notably on the static bootstrap deploy, where
+					// the sandboxed SW registers frames later than the address bar
+					// first updates, leaving the omnibox showing the raw token.
+					const path = new URL(url).pathname;
+					const token = path.split('/').filter(Boolean).pop() || '';
+					const decoded = token && resolvedProxy.decodeUrl(token);
+					// Only accept a real decode; a no-op (codec not ready) returns
+					// the token unchanged, in which case fall through rather than
+					// surface the raw token.
+					if (decoded && decoded !== token) {
+						return stripScramjetParams(decoded);
 					}
 				}
 			}

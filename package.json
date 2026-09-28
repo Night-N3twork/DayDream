@@ -1,6 +1,6 @@
 {
   "name": "daydreamx",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "type": "module",
   "scripts": {
     "dev": "tsx devserver.ts",
@@ -12,6 +12,7 @@
     "format": "prettier --write .",
     "start": "tsx index.ts",
     "knip": "knip",
+    "seed:rotate": "rm -f .ddx-seed .ddx-builds.json && echo 'Removed .ddx-seed and .ddx-builds.json. Next build will generate a fresh seed.'",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
@@ -118,7 +119,18 @@
       },
       "single": false,
       "resizable": true,
-      "snapable": true
+      "snapable": true,
+      "maximizable": true,
+      "minimizable": true,
+      "closable": true,
+      "advanced": {
+        "enabled": true,
+        "titlebar": {
+          "height": 46,
+          "draggable": true,
+          "doubleClickMaximize": true
+        }
+      }
     }
   }
 }

@@ -6,8 +6,9 @@ import { createSubpage } from "../components/subpage";
 import { createToggle } from "../components/toggle";
 import { openModal } from "../components/modal";
 import { showInlineNotice } from "../components/notice";
-import { getEventsAPI, getSettingsAPI, getTheming } from "../data/host";
+import { getEventsAPI, getHost, getSettingsAPI, getTheming } from "../data/host";
 import { themeManager } from "@utils/themeManager";
+import { normalizeCustomHomePage } from "@utils/homePage";
 import type { SectionContext } from "./types";
 
 let pendingCleanups: Array<() => void> = [];
@@ -204,13 +205,14 @@ function makeHomePageInput(): HTMLElement {
   })();
 
   const commit = async () => {
-    let value = input.value.trim();
-    if (value && !/^[a-z][a-z0-9+\-.]*:\/\//i.test(value) && !value.startsWith("//")) {
-      value = `https://${value}`;
-      input.value = value;
-    }
+    const rawValue = input.value.trim();
+    const value = rawValue ? normalizeCustomHomePage(rawValue) : "";
+    if (value === null) return;
+    if (value) input.value = value;
     try {
       await api.setItem("homePage", value);
+      await (getHost() as { protocols?: { updateHomeProtocol(url: string): Promise<void> | void } })
+        .protocols?.updateHomeProtocol(value);
     } catch (err) {
       console.warn("[settings/appearance] home page save failed", err);
       showInlineNotice("Failed to save home page URL.", { kind: "error" });

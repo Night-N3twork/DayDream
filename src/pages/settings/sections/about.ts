@@ -2,7 +2,10 @@ import { createIcons, icons } from "lucide";
 import { settingsSearch } from "../components/settingsSearch";
 import { createRow } from "../components/row";
 import { getProfiles, openInNewTab } from "../data/host";
+import { coverIdentity } from "@core/shared/build-runtime";
 import type { SectionContext } from "./types";
+
+const PRODUCT_NAME = coverIdentity().product;
 
 type FAQItem = { q: string; body: (root: HTMLElement) => void };
 
@@ -53,14 +56,14 @@ const FAQ: FAQItem[] = [
     q: "How can I make links? (BYOD)",
     body: (root) => {
       const p = document.createElement("p");
-      p.textContent = "Bring Your Own Domain — host a redirect on a free subdomain pointing to DDX:";
+      p.textContent = `Bring Your Own Domain — host a redirect on a free subdomain pointing to ${PRODUCT_NAME}:`;
       root.appendChild(p);
       const ol = document.createElement("ol");
       for (const step of [
         "Sign up at freedns.afraid.org and create a free subdomain.",
         "When asked for an IP, enter 51.222.206.184",
         "Wait a few minutes for DNS to propagate.",
-        "Visit https://yoursub.freeddns.org — it should land on DDX.",
+        `Visit https://yoursub.freeddns.org — it should land on ${PRODUCT_NAME}.`,
         "Share that URL with friends — it's yours and won't get blocked alongside the public hosts.",
       ]) {
         const li = document.createElement("li");
@@ -100,7 +103,7 @@ const FAQ: FAQItem[] = [
     q: "How do I install extensions?",
     body: (root) => {
       const p = document.createElement("p");
-      p.textContent = "Open ddx://extensions/ and use the install picker. DDX supports a subset of the Chrome extension API (Manifest V2 and V3).";
+      p.textContent = `Open ddx://extensions/ and use the install picker. ${PRODUCT_NAME} supports a subset of the Chrome extension API (Manifest V2 and V3).`;
       root.appendChild(p);
     },
   },
@@ -114,7 +117,7 @@ export async function render(container: HTMLElement, ctx?: SectionContext): Prom
 
   const h2 = document.createElement("h2");
   h2.className = "settings-section-title";
-  h2.textContent = "About DDX";
+  h2.textContent = `About ${PRODUCT_NAME}`;
   section.appendChild(h2);
 
   const hero = document.createElement("div");

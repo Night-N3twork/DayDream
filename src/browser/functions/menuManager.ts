@@ -77,6 +77,8 @@ export class MenuManager implements MenuInterface {
 
   private refreshContent: (() => void) | null = null;
   private extEventsBound = false;
+  private menusBound = false;
+  private extrasCloseTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor(items: Items, ui: UI, _nightmarePlugins: unknown = null) {
     this.items = items;
@@ -87,10 +89,15 @@ export class MenuManager implements MenuInterface {
     const menuBtn = this.items.extrasButton;
     const menuPopup = this.items.menuContent;
 
-    if (menuBtn && menuPopup) {
+    if (menuBtn && menuPopup && !this.menusBound) {
+      this.menusBound = true;
       menuPopup.style.transition = "opacity .18s ease, transform .18s ease";
 
       const openMenu = () => {
+        if (this.extrasCloseTimeout !== null) {
+          clearTimeout(this.extrasCloseTimeout);
+          this.extrasCloseTimeout = null;
+        }
         menuPopup.style.pointerEvents = "auto";
         menuPopup.style.opacity = "1";
         menuPopup.style.transform = "scale(1)";
@@ -99,10 +106,14 @@ export class MenuManager implements MenuInterface {
       };
 
       const closeMenu = () => {
+        if (this.extrasCloseTimeout !== null) {
+          clearTimeout(this.extrasCloseTimeout);
+        }
         menuPopup.style.opacity = "0";
         menuPopup.style.transform = "scale(.95)";
-        setTimeout(() => {
+        this.extrasCloseTimeout = setTimeout(() => {
           menuPopup.style.pointerEvents = "none";
+          this.extrasCloseTimeout = null;
         }, 180);
       };
 
@@ -120,12 +131,28 @@ export class MenuManager implements MenuInterface {
         });
       });
 
-      document.addEventListener("click", (e) => {
-        if (!menuPopup.contains(e.target as Node) && e.target !== menuBtn)
+      document.addEventListener("pointerdown", (e) => {
+        const target = e.target;
+        const rightClickMenu =
+          this.ui.rightclickmenu ?? this.ui.np?.rightclickmenu;
+        if (
+          !(target instanceof Node) ||
+          !rightClickMenu?.container?.contains(target)
+        ) {
+          rightClickMenu?.closeMenu();
+        }
+
+        if (
+          !(target instanceof Node) ||
+          (!menuPopup.contains(target) && !menuBtn.contains(target))
+        )
           closeMenu();
-      });
+      }, true);
 
       document.addEventListener("ddx:page.clicked", () => {
+        const rightClickMenu =
+          this.ui.rightclickmenu ?? this.ui.np?.rightclickmenu;
+        rightClickMenu?.closeMenu();
         closeMenu();
       });
     }

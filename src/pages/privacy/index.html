@@ -1,1027 +1,1205 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Privacy Policy - DayDreamX</title>
-    <script>
-      self.__ddxBase = (function () {
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Privacy Policy - DayDreamX</title>
+		<script>
+			self.__ddxBase = (function () {
         var p = location.pathname;
-        var i = p.indexOf("/internal/");
-        if (i !== -1) return p.substring(0, i + 1);
-        return new URL("./", location.href).pathname;
+        // Normalize: extensionless URLs without trailing slash are directories.
+        var last = p.split('/').pop() || '';
+        if (!p.endsWith('/') && last && !/\.[a-z0-9]+$/i.test(last)) {
+          p = p + '/';
+        }
+        var i = p.indexOf('/internal/');
+        var appBase = i !== -1
+          ? p.substring(0, i + 1)
+          : p.substring(0, p.lastIndexOf('/') + 1);
+        // <base> anchors every relative ref (script/link/modulepreload/img) to
+        // the page's real directory, so /app vs /app/ vs /app/x.html (and
+        // /app/internal/foo vs /app/internal/foo/) all resolve the same on ANY
+        // static host — no server-side redirect required.
+        var dirBase = p.substring(0, p.lastIndexOf('/') + 1);
+        document.write('<base href="' + dirBase + '">');
+        return appBase;
       })();
-    </script>
-    <link rel="icon" type="icon/x-icon" href="../../res/logo.png" />
-    <meta property="og:image" content="../../res/logo.png" />
-    <link rel="stylesheet" href="/src/css/internal.scss" />
-  </head>
+		</script>
+		<link rel="icon" type="icon/x-icon" href="../../res/logo.png" />
+		<meta property="og:image" content="../../res/logo.png" />
+		<link rel="stylesheet" href="/src/css/internal.scss" />
+	</head>
 
-  <body class="bg-[var(--bg-2)] text-[var(--text)] antialiased">
-    <div class="min-h-screen w-full">
-      <main class="flex-1 overflow-y-auto">
-        <div class="p-8 max-w-4xl mx-auto space-y-8">
-          <!-- Header -->
-          <div class="text-center space-y-4 py-8">
-            <div class="flex items-center justify-center gap-2 mb-4">
-              <div class="stack h-12 w-12">
-                <div
-                  class="masked-shape"
-                  style="
-                    width: 100%;
-                    height: 100%;
-                    background: var(--main);
-                    -webkit-mask-image: url(&quot;../../res/logo/mask.png&quot;);
-                    -webkit-mask-repeat: no-repeat;
-                    -webkit-mask-position: center;
-                    -webkit-mask-size: cover;
-                    mask-image: url(&quot;../../res/logo/mask.png&quot;);
-                    mask-repeat: no-repeat;
-                    mask-position: center;
-                    mask-size: cover;
-                  "
-                >
-                  <img
-                    class="overlay"
-                    src="../../res/logo/overlay.png"
-                    alt="overlay gradient"
-                    style="
-                      width: 100%;
-                      height: 100%;
-                      mix-blend-mode: multiply;
-                      pointer-events: none;
-                    "
-                  />
-                </div>
-              </div>
-            </div>
-            <h1 class="text-4xl font-bold text-[var(--main)]">
-              Privacy Policy
-            </h1>
-            <p class="text-sm text-[var(--proto)]">
-              Last Updated: November 3, 2025
-            </p>
-            <a
-              href="../newtab/"
-              class="inline-flex items-center gap-2 text-sm text-[var(--main)] hover:text-[var(--main)]/80 transition-colors"
-            >
-              <i data-lucide="arrow-left" class="h-4 w-4"></i>
-              Back to Home
-            </a>
-          </div>
+	<body class="legal-page">
+		<div class="legal-layout">
+			<main class="legal-main">
+				<div class="legal-content">
+					<!-- Header -->
+					<header class="legal-header">
+						<div class="legal-logo">
+							<div class="stack">
+								<div
+									class="masked-shape"
+									style="
+										width: 100%;
+										height: 100%;
+										background: var(--main);
+										-webkit-mask-image: url('../../res/logo/mask.png');
+										-webkit-mask-repeat: no-repeat;
+										-webkit-mask-position: center;
+										-webkit-mask-size: cover;
+										mask-image: url('../../res/logo/mask.png');
+										mask-repeat: no-repeat;
+										mask-position: center;
+										mask-size: cover;
+									"
+								>
+									<img
+										class="overlay"
+										src="../../res/logo/overlay.png"
+										alt="overlay gradient"
+										style="
+											width: 100%;
+											height: 100%;
+											mix-blend-mode: multiply;
+											pointer-events: none;
+										"
+									/>
+								</div>
+							</div>
+						</div>
+						<h1 class="legal-title">Privacy Policy</h1>
+						<p class="legal-updated">
+							Last Updated: November 3, 2025
+						</p>
+						<a href="../newtab/" class="legal-back-link">
+							<i data-lucide="arrow-left"></i>
+							Back to Home
+						</a>
+					</header>
 
-          <!-- Introduction -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                Introduction
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>
-                  Welcome to DayDreamX. Your privacy is extremely important to
-                  us. This Privacy Policy explains how we handle information
-                  when you use our service.
-                </p>
-                <p class="font-medium text-[var(--main)]">
-                  DayDreamX is owned and operated by
-                  <strong>Night Network</strong>. References to "we," "us," or
-                  "our" in this Privacy Policy refer to Night Network.
-                </p>
-                <p class="font-medium text-[var(--main)]">
-                  DayDreamX is designed with privacy as a core principle. We
-                  believe in transparency about our data practices and your
-                  rights.
-                </p>
-                <p>
-                  By using DayDreamX, you agree to the collection and use of
-                  information in accordance with this policy. If you do not
-                  agree with our policies and practices, do not use the Service.
-                </p>
-              </div>
-            </div>
+					<!-- Introduction -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">Introduction</h2>
+							<div class="legal-body">
+								<p>
+									Welcome to DayDreamX. Your privacy is
+									extremely important to us. This Privacy
+									Policy explains how we handle information
+									when you use our service.
+								</p>
+								<p class="legal-paragraph legal-emphasis">
+									DayDreamX is owned and operated by
+									<strong>Night Network</strong>. References
+									to "we," "us," or "our" in this Privacy
+									Policy refer to Night Network.
+								</p>
+								<p class="legal-paragraph legal-emphasis">
+									DayDreamX is designed with privacy as a core
+									principle. We believe in transparency about
+									our data practices and your rights.
+								</p>
+								<p>
+									By using DayDreamX, you agree to the
+									collection and use of information in
+									accordance with this policy. If you do not
+									agree with our policies and practices, do
+									not use the Service.
+								</p>
+							</div>
+						</div>
 
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h3 class="text-lg font-semibold text-[var(--main)] mb-3">
-                Open Source & Transparency
-              </h3>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>
-                  DayDreamX is free and open-source software licensed under the
-                  <strong
-                    >GNU Affero General Public License v3.0 (AGPL-3.0)</strong
-                  >. The complete source code is publicly available at:
-                </p>
-                <p>
-                  <a
-                    href="https://gitlab.com/nightnetwork/daydreamx"
-                    class="text-[var(--main)] hover:text-[var(--main)]/80 font-medium"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    https://gitlab.com/nightnetwork/daydreamx
-                  </a>
-                </p>
-                <p>
-                  This means you can review exactly how we handle your data,
-                  verify our privacy claims, and even run your own instance of
-                  DayDreamX. We believe in transparency and community-driven
-                  development.
-                </p>
-              </div>
-            </div>
+						<div class="legal-card">
+							<h3 class="legal-subheading">
+								Open Source & Transparency
+							</h3>
+							<div class="legal-body">
+								<p>
+									DayDreamX is free and open-source software
+									licensed under the
+									<strong
+										>GNU Affero General Public License v3.0
+										(AGPL-3.0)</strong
+									>. The complete source code is publicly
+									available at:
+								</p>
+								<p>
+									<a
+										href="https://gitlab.com/nightnetwork/daydreamx"
+										class="legal-link"
+										target="_blank"
+										rel="noopener noreferrer"
+									>
+										https://gitlab.com/nightnetwork/daydreamx
+									</a>
+								</p>
+								<p>
+									This means you can review exactly how we
+									handle your data, verify our privacy claims,
+									and even run your own instance of DayDreamX.
+									We believe in transparency and
+									community-driven development.
+								</p>
+							</div>
+						</div>
 
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h3 class="text-lg font-semibold text-[var(--main)] mb-3">
-                Code Obfuscation & Build Process
-              </h3>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>
-                  To protect our intellectual property and infrastructure,
-                  DayDreamX uses
-                  <strong>code and font obfuscation</strong> during the
-                  production build process. This means:
-                </p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>
-                    JavaScript code is minified and obfuscated to make it harder
-                    to reverse engineer
-                  </li>
-                  <li>
-                    Font files may be obfuscated to prevent unauthorized
-                    extraction
-                  </li>
-                  <li>
-                    This does not affect functionality or your privacy in any
-                    way
-                  </li>
-                  <li>
-                    The obfuscation is primarily to protect Night+ systems and
-                    prevent unauthorized modifications
-                  </li>
-                </ul>
-                <p class="mt-3 font-medium text-[var(--main)]">
-                  Full, unobfuscated source code is always available in our
-                  GitLab repository. The obfuscation only applies to production
-                  builds.
-                </p>
-                <p class="mt-3">
-                  <strong>Plain Text Legal Documents:</strong> For easier
-                  reading and archival purposes, plain text Markdown versions of
-                  this Privacy Policy and our Terms of Service are available in
-                  the repository at:
-                </p>
-                <ul class="list-disc list-inside space-y-1 ml-4 mt-2">
-                  <li><code>PRIVACY.md</code> - Privacy Policy</li>
-                  <li><code>TERMS.md</code> - Terms of Service</li>
-                </ul>
-              </div>
-            </div>
-          </section>
+						<div class="legal-card">
+							<h3 class="legal-subheading">
+								Code Obfuscation & Build Process
+							</h3>
+							<div class="legal-body">
+								<p>
+									To protect our intellectual property and
+									infrastructure, DayDreamX uses
+									<strong>code and font obfuscation</strong>
+									during the production build process. This
+									means:
+								</p>
+								<ul class="legal-list">
+									<li>
+										JavaScript code is minified and
+										obfuscated to make it harder to reverse
+										engineer
+									</li>
+									<li>
+										Font files may be obfuscated to prevent
+										unauthorized extraction
+									</li>
+									<li>
+										This does not affect functionality or
+										your privacy in any way
+									</li>
+									<li>
+										The obfuscation is primarily to protect
+										Night+ systems and prevent unauthorized
+										modifications
+									</li>
+								</ul>
+								<p
+									class="legal-paragraph legal-emphasis legal-block"
+								>
+									Full, unobfuscated source code is always
+									available in our GitLab repository. The
+									obfuscation only applies to production
+									builds.
+								</p>
+								<p class="legal-paragraph legal-block">
+									<strong>Plain Text Legal Documents:</strong>
+									For easier reading and archival purposes,
+									plain text Markdown versions of this Privacy
+									Policy and our Terms of Service are
+									available in the repository at:
+								</p>
+								<ul class="legal-list legal-list-compact">
+									<li>
+										<code>PRIVACY.md</code> - Privacy Policy
+									</li>
+									<li>
+										<code>TERMS.md</code> - Terms of Service
+									</li>
+								</ul>
+							</div>
+						</div>
+					</section>
 
-          <!-- Information We Collect -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                1. Information We Collect
-              </h2>
-              <div class="space-y-4 text-sm text-[var(--text)] leading-relaxed">
-                <div>
-                  <h3 class="font-semibold text-[var(--main)] mb-2">
-                    1.1 Information Stored Locally
-                  </h3>
-                  <p class="mb-2">
-                    DayDreamX stores the following information locally in your
-                    browser using LocalStorage and IndexedDB:
-                  </p>
-                  <ul class="list-disc list-inside space-y-2 ml-4">
-                    <li>
-                      <strong>Settings & Preferences:</strong> Theme choices,
-                      proxy settings, search engine preferences, tab cloaking
-                      configurations
-                    </li>
-                    <li>
-                      <strong>Browsing Data:</strong> Bookmarks, browsing
-                      history, tab states, and shortcuts
-                    </li>
-                    <li>
-                      <strong>Extensions Data:</strong> User-installed
-                      extensions and their configurations
-                    </li>
-                    <li>
-                      <strong>Authentication Tokens:</strong> Night+ login
-                      tokens if you use our optional account system
-                    </li>
-                  </ul>
-                  <p class="mt-3 text-[var(--main)] font-medium">
-                    Important: This data is stored ONLY on your device. We do
-                    not have access to this information unless you explicitly
-                    sync it through Night+.
-                  </p>
-                </div>
+					<!-- Information We Collect -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								1. Information We Collect
+							</h2>
+							<div class="legal-body">
+								<div>
+									<h3 class="legal-subheading">
+										1.1 Information Stored Locally
+									</h3>
+									<p class="legal-paragraph legal-block">
+										DayDreamX stores the following
+										information locally in your browser
+										using LocalStorage and IndexedDB:
+									</p>
+									<ul class="legal-list">
+										<li>
+											<strong
+												>Settings & Preferences:</strong
+											>
+											Theme choices, proxy settings,
+											search engine preferences, tab
+											cloaking configurations
+										</li>
+										<li>
+											<strong>Browsing Data:</strong>
+											Bookmarks, browsing history, tab
+											states, and shortcuts
+										</li>
+										<li>
+											<strong>Extensions Data:</strong>
+											User-installed extensions and their
+											configurations
+										</li>
+										<li>
+											<strong
+												>Authentication Tokens:</strong
+											>
+											Night+ login tokens if you use our
+											optional account system
+										</li>
+									</ul>
+									<p
+										class="legal-paragraph legal-emphasis legal-block"
+									>
+										Important: This data is stored ONLY on
+										your device. We do not have access to
+										this information unless you explicitly
+										sync it through Night+.
+									</p>
+								</div>
 
-                <div>
-                  <h3 class="font-semibold text-[var(--main)] mb-2">
-                    1.2 Server Logs
-                  </h3>
-                  <p class="mb-2">
-                    When you use DayDreamX, our servers may temporarily log:
-                  </p>
-                  <ul class="list-disc list-inside space-y-2 ml-4">
-                    <li>IP addresses (anonymized and not stored long-term)</li>
-                    <li>Browser type and version</li>
-                    <li>Access times and dates</li>
-                    <li>Error messages and performance metrics</li>
-                  </ul>
-                  <p class="mt-3">
-                    These logs are used solely for maintaining service
-                    stability, debugging, and security purposes. They are
-                    automatically deleted after a short retention period.
-                  </p>
-                </div>
+								<div>
+									<h3 class="legal-subheading">
+										1.2 Server Logs
+									</h3>
+									<p class="legal-paragraph legal-block">
+										When you use DayDreamX, our servers may
+										temporarily log:
+									</p>
+									<ul class="legal-list">
+										<li>
+											IP addresses (anonymized and not
+											stored long-term)
+										</li>
+										<li>Browser type and version</li>
+										<li>Access times and dates</li>
+										<li>
+											Error messages and performance
+											metrics
+										</li>
+									</ul>
+									<p class="legal-paragraph legal-block">
+										These logs are used solely for
+										maintaining service stability,
+										debugging, and security purposes. They
+										are automatically deleted after a short
+										retention period.
+									</p>
+								</div>
 
-                <div>
-                  <h3 class="font-semibold text-[var(--main)] mb-2">
-                    1.3 Information We DO NOT Collect
-                  </h3>
-                  <ul class="list-disc list-inside space-y-2 ml-4">
-                    <li>
-                      We do NOT track the websites you visit through our proxy
-                    </li>
-                    <li>
-                      We do NOT store or analyze your browsing history on our
-                      servers
-                    </li>
-                    <li>
-                      We do NOT sell, rent, or share your data with third
-                      parties
-                    </li>
-                    <li>We do NOT use tracking cookies or analytics scripts</li>
-                    <li>
-                      We do NOT monitor the content you access through the
-                      service
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </section>
+								<div>
+									<h3 class="legal-subheading">
+										1.3 Information We DO NOT Collect
+									</h3>
+									<ul class="legal-list">
+										<li>
+											We do NOT track the websites you
+											visit through our proxy
+										</li>
+										<li>
+											We do NOT store or analyze your
+											browsing history on our servers
+										</li>
+										<li>
+											We do NOT sell, rent, or share your
+											data with third parties
+										</li>
+										<li>
+											We do NOT use tracking cookies or
+											analytics scripts
+										</li>
+										<li>
+											We do NOT monitor the content you
+											access through the service
+										</li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</section>
 
-          <!-- How We Use Information -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                2. How We Use Your Information
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>We use the minimal information we collect to:</p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>Provide and maintain the DayDreamX service</li>
-                  <li>Improve and optimize service performance</li>
-                  <li>Detect, prevent, and address technical issues</li>
-                  <li>Protect against abuse and malicious activity</li>
-                  <li>Respond to user support requests</li>
-                  <li>Communicate service updates and important notices</li>
-                </ul>
-                <p class="mt-3 font-medium text-[var(--main)]">
-                  We will never use your information for advertising purposes or
-                  share it with third-party advertisers.
-                </p>
-              </div>
-            </div>
-          </section>
+					<!-- How We Use Information -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								2. How We Use Your Information
+							</h2>
+							<div class="legal-body">
+								<p>
+									We use the minimal information we collect
+									to:
+								</p>
+								<ul class="legal-list">
+									<li>
+										Provide and maintain the DayDreamX
+										service
+									</li>
+									<li>
+										Improve and optimize service performance
+									</li>
+									<li>
+										Detect, prevent, and address technical
+										issues
+									</li>
+									<li>
+										Protect against abuse and malicious
+										activity
+									</li>
+									<li>Respond to user support requests</li>
+									<li>
+										Communicate service updates and
+										important notices
+									</li>
+								</ul>
+								<p
+									class="legal-paragraph legal-emphasis legal-block"
+								>
+									We will never use your information for
+									advertising purposes or share it with
+									third-party advertisers.
+								</p>
+							</div>
+						</div>
+					</section>
 
-          <!-- Night+ Optional Services -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                3. Night+ Premium Service
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>
-                  <strong>Night+</strong> is our optional premium subscription
-                  service that provides enhanced features beyond the core
-                  DayDreamX functionality. Using Night+ is completely optional,
-                  and all core proxy features remain available without a
-                  subscription.
-                </p>
+					<!-- Night+ Optional Services -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								3. Night+ Premium Service
+							</h2>
+							<div class="legal-body">
+								<p>
+									<strong>Night+</strong> is our optional
+									premium subscription service that provides
+									enhanced features beyond the core DayDreamX
+									functionality. Using Night+ is completely
+									optional, and all core proxy features remain
+									available without a subscription.
+								</p>
 
-                <div>
-                  <h3 class="font-semibold text-[var(--main)] mb-2">
-                    3.1 Information Collected with Night+ Account
-                  </h3>
-                  <p class="mb-2">
-                    If you choose to create a Night+ account, we collect and
-                    store the following:
-                  </p>
-                  <ul class="list-disc list-inside space-y-2 ml-4">
-                    <li>
-                      <strong>Account Information:</strong> Username, email
-                      address (optional), encrypted password
-                    </li>
-                    <li>
-                      <strong>Subscription Data:</strong> Payment method
-                      (processed by third-party payment processors),
-                      subscription tier, billing dates
-                    </li>
-                    <li>
-                      <strong>Authentication Tokens:</strong> Secure tokens to
-                      maintain your login session
-                    </li>
-                    <li>
-                      <strong>Account Activity:</strong> Login timestamps, last
-                      active date, subscription status changes
-                    </li>
-                  </ul>
-                </div>
+								<div>
+									<h3 class="legal-subheading">
+										3.1 Information Collected with Night+
+										Account
+									</h3>
+									<p class="legal-paragraph legal-block">
+										If you choose to create a Night+
+										account, we collect and store the
+										following:
+									</p>
+									<ul class="legal-list">
+										<li>
+											<strong
+												>Account Information:</strong
+											>
+											Username, email address (optional),
+											encrypted password
+										</li>
+										<li>
+											<strong>Subscription Data:</strong>
+											Payment method (processed by
+											third-party payment processors),
+											subscription tier, billing dates
+										</li>
+										<li>
+											<strong
+												>Authentication Tokens:</strong
+											>
+											Secure tokens to maintain your login
+											session
+										</li>
+										<li>
+											<strong>Account Activity:</strong>
+											Login timestamps, last active date,
+											subscription status changes
+										</li>
+									</ul>
+								</div>
 
-                <div>
-                  <h3 class="font-semibold text-[var(--main)] mb-2">
-                    3.2 Night+ Sync Data
-                  </h3>
-                  <p class="mb-2">
-                    If you enable Night+ Cloud Sync, the following data is
-                    encrypted and stored on our servers:
-                  </p>
-                  <ul class="list-disc list-inside space-y-2 ml-4">
-                    <li>
-                      <strong>Settings & Preferences:</strong> Theme choices,
-                      proxy settings, customization options
-                    </li>
-                    <li>
-                      <strong>Profiles:</strong> Your browser profiles
-                      (unlimited for Night+ users, up to 3 for free users)
-                    </li>
-                    <li>
-                      <strong>Bookmarks:</strong> Your saved bookmarks and
-                      bookmark folders
-                    </li>
-                    <li>
-                      <strong>History:</strong> Browsing history (only if sync
-                      is enabled for history)
-                    </li>
-                    <li>
-                      <strong>Extensions:</strong> List of installed extensions
-                      and their settings
-                    </li>
-                    <li>
-                      <strong>Custom Themes:</strong> Your custom theme
-                      configurations and backgrounds
-                    </li>
-                    <li>
-                      <strong>Server Preferences:</strong> Selected WISP servers
-                      and proxy configurations (premium server URLs remain
-                      concealed)
-                    </li>
-                  </ul>
-                  <p class="mt-3 font-medium text-[var(--main)]">
-                    All sync data is encrypted before transmission and storage.
-                    We cannot access the actual content of your synced data.
-                  </p>
-                  <p class="mt-2 text-[var(--proto)] text-xs">
-                    You can disable sync at any time and delete all synced data
-                    from our servers through your Night+ account settings.
-                  </p>
-                </div>
+								<div>
+									<h3 class="legal-subheading">
+										3.2 Night+ Sync Data
+									</h3>
+									<p class="legal-paragraph legal-block">
+										If you enable Night+ Cloud Sync, the
+										following data is encrypted and stored
+										on our servers:
+									</p>
+									<ul class="legal-list">
+										<li>
+											<strong
+												>Settings & Preferences:</strong
+											>
+											Theme choices, proxy settings,
+											customization options
+										</li>
+										<li>
+											<strong>Profiles:</strong> Your
+											browser profiles (unlimited for
+											Night+ users, up to 3 for free
+											users)
+										</li>
+										<li>
+											<strong>Bookmarks:</strong> Your
+											saved bookmarks and bookmark folders
+										</li>
+										<li>
+											<strong>History:</strong> Browsing
+											history (only if sync is enabled for
+											history)
+										</li>
+										<li>
+											<strong>Extensions:</strong> List of
+											installed extensions and their
+											settings
+										</li>
+										<li>
+											<strong>Custom Themes:</strong> Your
+											custom theme configurations and
+											backgrounds
+										</li>
+										<li>
+											<strong>Server Preferences:</strong>
+											Selected WISP servers and proxy
+											configurations (premium server URLs
+											remain concealed)
+										</li>
+									</ul>
+									<p
+										class="legal-paragraph legal-emphasis legal-block"
+									>
+										All sync data is encrypted before
+										transmission and storage. We cannot
+										access the actual content of your synced
+										data.
+									</p>
+									<p
+										class="legal-paragraph legal-note legal-block"
+									>
+										You can disable sync at any time and
+										delete all synced data from our servers
+										through your Night+ account settings.
+									</p>
+								</div>
 
-                <div>
-                  <h3 class="font-semibold text-[var(--main)] mb-2">
-                    3.2.1 Premium Server Infrastructure
-                  </h3>
-                  <p>
-                    Night+ subscribers gain access to premium WISP servers and
-                    proxy backends that provide enhanced performance,
-                    reliability, and speed. These premium servers are:
-                  </p>
-                  <ul class="list-disc list-inside space-y-2 ml-4 mt-2">
-                    <li>
-                      <strong>Dynamically provided:</strong> Server URLs are
-                      fetched from secure endpoints only accessible with valid
-                      Night+ authentication
-                    </li>
-                    <li>
-                      <strong>Concealed:</strong> Premium server URLs are not
-                      publicly disclosed or visible in client-side code to
-                      prevent abuse
-                    </li>
-                    <li>
-                      <strong>Monitored:</strong> We may log connection attempts
-                      to premium servers for security and abuse prevention
-                    </li>
-                    <li>
-                      <strong>Exclusive:</strong> Only available to active
-                      Night+ subscribers with valid authentication
-                    </li>
-                  </ul>
-                  <p class="mt-3 font-medium text-[var(--main)]">
-                    Premium server access is immediately revoked when your
-                    Night+ subscription ends or is cancelled. We do not store or
-                    expose premium server URLs to unauthorized users.
-                  </p>
-                  <p class="mt-2 text-[var(--proto)] text-xs">
-                    Connection logs to premium servers may include: timestamp,
-                    authentication status, and connection success/failure. We do
-                    not log the websites you visit through these proxies.
-                  </p>
-                </div>
+								<div>
+									<h3 class="legal-subheading">
+										3.2.1 Premium Server Infrastructure
+									</h3>
+									<p>
+										Night+ subscribers gain access to
+										premium WISP servers and proxy backends
+										that provide enhanced performance,
+										reliability, and speed. These premium
+										servers are:
+									</p>
+									<ul class="legal-list">
+										<li>
+											<strong
+												>Dynamically provided:</strong
+											>
+											Server URLs are fetched from secure
+											endpoints only accessible with valid
+											Night+ authentication
+										</li>
+										<li>
+											<strong>Concealed:</strong> Premium
+											server URLs are not publicly
+											disclosed or visible in client-side
+											code to prevent abuse
+										</li>
+										<li>
+											<strong>Monitored:</strong> We may
+											log connection attempts to premium
+											servers for security and abuse
+											prevention
+										</li>
+										<li>
+											<strong>Exclusive:</strong> Only
+											available to active Night+
+											subscribers with valid
+											authentication
+										</li>
+									</ul>
+									<p
+										class="legal-paragraph legal-emphasis legal-block"
+									>
+										Premium server access is immediately
+										revoked when your Night+ subscription
+										ends or is cancelled. We do not store or
+										expose premium server URLs to
+										unauthorized users.
+									</p>
+									<p
+										class="legal-paragraph legal-note legal-block"
+									>
+										Connection logs to premium servers may
+										include: timestamp, authentication
+										status, and connection success/failure.
+										We do not log the websites you visit
+										through these proxies.
+									</p>
+								</div>
 
-                <div>
-                  <h3 class="font-semibold text-[var(--main)] mb-2">
-                    3.3 Payment Processing
-                  </h3>
-                  <p>
-                    Night+ subscription payments are processed by third-party
-                    payment processors. We do not store your full credit card
-                    numbers or payment details on our servers. Payment
-                    processors handle all sensitive financial information in
-                    compliance with PCI-DSS standards.
-                  </p>
-                  <p class="mt-2">
-                    We only receive confirmation of successful payments and
-                    basic subscription status from our payment processors.
-                  </p>
-                </div>
+								<div>
+									<h3 class="legal-subheading">
+										3.3 Payment Processing
+									</h3>
+									<p>
+										Night+ subscription payments are
+										processed by third-party payment
+										processors. We do not store your full
+										credit card numbers or payment details
+										on our servers. Payment processors
+										handle all sensitive financial
+										information in compliance with PCI-DSS
+										standards.
+									</p>
+									<p class="legal-paragraph legal-block">
+										We only receive confirmation of
+										successful payments and basic
+										subscription status from our payment
+										processors.
+									</p>
+								</div>
 
-                <div>
-                  <h3 class="font-semibold text-[var(--main)] mb-2">
-                    3.4 Usage Analytics (Night+ Only)
-                  </h3>
-                  <p>
-                    Night+ subscribers who opt-in may receive privacy-respecting
-                    usage analytics, such as:
-                  </p>
-                  <ul class="list-disc list-inside space-y-1 ml-4 mt-2">
-                    <li>Total browsing sessions</li>
-                    <li>
-                      Feature usage statistics (which features you use most)
-                    </li>
-                    <li>
-                      Performance metrics (page load times, connection quality)
-                    </li>
-                    <li>Device and browser information</li>
-                  </ul>
-                  <p class="mt-3 text-[var(--main)] font-medium">
-                    These analytics are aggregated and anonymized. We never
-                    track specific websites you visit or the content you access.
-                    Analytics can be disabled in your Night+ settings.
-                  </p>
-                </div>
+								<div>
+									<h3 class="legal-subheading">
+										3.4 Usage Analytics (Night+ Only)
+									</h3>
+									<p>
+										Night+ subscribers who opt-in may
+										receive privacy-respecting usage
+										analytics, such as:
+									</p>
+									<ul class="legal-list legal-list-compact">
+										<li>Total browsing sessions</li>
+										<li>
+											Feature usage statistics (which
+											features you use most)
+										</li>
+										<li>
+											Performance metrics (page load
+											times, connection quality)
+										</li>
+										<li>Device and browser information</li>
+									</ul>
+									<p
+										class="legal-paragraph legal-emphasis legal-block"
+									>
+										These analytics are aggregated and
+										anonymized. We never track specific
+										websites you visit or the content you
+										access. Analytics can be disabled in
+										your Night+ settings.
+									</p>
+								</div>
 
-                <div>
-                  <h3 class="font-semibold text-[var(--main)] mb-2">
-                    3.5 Night+ Account Deletion
-                  </h3>
-                  <p>
-                    You can delete your Night+ account at any time. Upon
-                    deletion:
-                  </p>
-                  <ul class="list-disc list-inside space-y-2 ml-4 mt-2">
-                    <li>
-                      All account information is permanently deleted within 30
-                      days
-                    </li>
-                    <li>
-                      All synced data is permanently deleted from our servers
-                    </li>
-                    <li>
-                      Your subscription is immediately cancelled (no refunds for
-                      partial periods)
-                    </li>
-                    <li>Access to premium features is immediately revoked</li>
-                    <li>
-                      Core DayDreamX features remain available without Night+
-                    </li>
-                  </ul>
-                  <p class="mt-3 text-[var(--proto)] text-xs">
-                    We may retain limited billing records for tax and legal
-                    compliance purposes as required by law.
-                  </p>
-                </div>
+								<div>
+									<h3 class="legal-subheading">
+										3.5 Night+ Account Deletion
+									</h3>
+									<p>
+										You can delete your Night+ account at
+										any time. Upon deletion:
+									</p>
+									<ul class="legal-list">
+										<li>
+											All account information is
+											permanently deleted within 30 days
+										</li>
+										<li>
+											All synced data is permanently
+											deleted from our servers
+										</li>
+										<li>
+											Your subscription is immediately
+											cancelled (no refunds for partial
+											periods)
+										</li>
+										<li>
+											Access to premium features is
+											immediately revoked
+										</li>
+										<li>
+											Core DayDreamX features remain
+											available without Night+
+										</li>
+									</ul>
+									<p
+										class="legal-paragraph legal-note legal-block"
+									>
+										We may retain limited billing records
+										for tax and legal compliance purposes as
+										required by law.
+									</p>
+								</div>
 
-                <p class="mt-4 font-medium text-[var(--main)]">
-                  Night+ is completely optional. You can use DayDreamX fully
-                  without creating an account. All proxy features and core
-                  functionality work without Night+.
-                </p>
-              </div>
-            </div>
-          </section>
+								<p
+									class="legal-paragraph legal-emphasis legal-block legal-block-spacious"
+								>
+									Night+ is completely optional. You can use
+									DayDreamX fully without creating an account.
+									All proxy features and core functionality
+									work without Night+.
+								</p>
+							</div>
+						</div>
+					</section>
 
-          <!-- Data Storage and Security -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                4. Data Storage and Security
-              </h2>
-              <div class="space-y-4 text-sm text-[var(--text)] leading-relaxed">
-                <div>
-                  <p class="mb-3">
-                    We take reasonable measures to protect your information from
-                    unauthorized access, alteration, disclosure, or destruction:
-                  </p>
-                  <ul class="list-disc list-inside space-y-2 ml-4">
-                    <li>
-                      All connections to DayDreamX are encrypted using HTTPS/TLS
-                    </li>
-                    <li>
-                      Night+ authentication uses secure, industry-standard
-                      encryption
-                    </li>
-                    <li>
-                      We implement security best practices in our codebase
-                    </li>
-                    <li>
-                      Access to server infrastructure is restricted and
-                      monitored
-                    </li>
-                    <li>We conduct regular security audits and updates</li>
-                  </ul>
-                </div>
+					<!-- Data Storage and Security -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								4. Data Storage and Security
+							</h2>
+							<div class="legal-body">
+								<div>
+									<p class="legal-paragraph legal-block">
+										We take reasonable measures to protect
+										your information from unauthorized
+										access, alteration, disclosure, or
+										destruction:
+									</p>
+									<ul class="legal-list">
+										<li>
+											All connections to DayDreamX are
+											encrypted using HTTPS/TLS
+										</li>
+										<li>
+											Night+ authentication uses secure,
+											industry-standard encryption
+										</li>
+										<li>
+											We implement security best practices
+											in our codebase
+										</li>
+										<li>
+											Access to server infrastructure is
+											restricted and monitored
+										</li>
+										<li>
+											We conduct regular security audits
+											and updates
+										</li>
+									</ul>
+								</div>
 
-                <div>
-                  <h3 class="font-semibold text-[var(--main)] mb-2">
-                    WISP Protocol Encryption
-                  </h3>
-                  <p>
-                    DayDreamX uses the
-                    <strong
-                      >WISP (WebSocket Interface for Secure Proxying)
-                      protocol</strong
-                    >
-                    developed by MercuryWorkshop to encrypt and transmit your
-                    browsing data. This ensures that your proxied traffic is
-                    encrypted end-to-end between your browser and our proxy
-                    servers.
-                  </p>
-                  <p class="mt-2">
-                    Learn more about WISP:
-                    <a
-                      href="https://github.com/MercuryWorkshop/wisp-protocol"
-                      class="text-[var(--main)] hover:text-[var(--main)]/80 font-medium"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      WISP Protocol Specification
-                    </a>
-                  </p>
-                </div>
+								<div>
+									<h3 class="legal-subheading">
+										WISP Protocol Encryption
+									</h3>
+									<p>
+										DayDreamX uses the
+										<strong
+											>WISP (WebSocket Interface for
+											Secure Proxying) protocol</strong
+										>
+										developed by MercuryWorkshop to encrypt
+										and transmit your browsing data. This
+										ensures that your proxied traffic is
+										encrypted end-to-end between your
+										browser and our proxy servers.
+									</p>
+									<p class="legal-paragraph legal-block">
+										Learn more about WISP:
+										<a
+											href="https://github.com/MercuryWorkshop/wisp-protocol"
+											class="legal-link"
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											WISP Protocol Specification
+										</a>
+									</p>
+								</div>
 
-                <div>
-                  <h3 class="font-semibold text-[var(--main)] mb-2">
-                    Traffic Filtering on Production Servers
-                  </h3>
-                  <p>
-                    On our production servers, network traffic is filtered using
-                    <strong>Cloudflare Family DNS</strong> for basic content
-                    filtering and security. However:
-                  </p>
-                  <ul class="list-disc list-inside space-y-2 ml-4 mt-2">
-                    <li>
-                      <strong>We cannot read your encrypted traffic.</strong>
-                      Due to WISP encryption, your browsing content remains
-                      private
-                    </li>
-                    <li>
-                      Cloudflare DNS filtering occurs at the network level and
-                      only blocks known malicious or inappropriate domains
-                    </li>
-                    <li>
-                      This filtering helps protect our infrastructure and users
-                      from malware and harmful content
-                    </li>
-                    <li>
-                      Your specific browsing destinations and page contents are
-                      not visible to us or Cloudflare through the proxy
-                    </li>
-                  </ul>
-                </div>
+								<div>
+									<h3 class="legal-subheading">
+										Traffic Filtering on Production Servers
+									</h3>
+									<p>
+										On our production servers, network
+										traffic is filtered using
+										<strong>Cloudflare Family DNS</strong>
+										for basic content filtering and
+										security. However:
+									</p>
+									<ul class="legal-list">
+										<li>
+											<strong
+												>We cannot read your encrypted
+												traffic.</strong
+											>
+											Due to WISP encryption, your
+											browsing content remains private
+										</li>
+										<li>
+											Cloudflare DNS filtering occurs at
+											the network level and only blocks
+											known malicious or inappropriate
+											domains
+										</li>
+										<li>
+											This filtering helps protect our
+											infrastructure and users from
+											malware and harmful content
+										</li>
+										<li>
+											Your specific browsing destinations
+											and page contents are not visible to
+											us or Cloudflare through the proxy
+										</li>
+									</ul>
+								</div>
 
-                <p class="mt-3">
-                  However, no method of transmission over the Internet or
-                  electronic storage is 100% secure. While we strive to use
-                  commercially acceptable means to protect your information, we
-                  cannot guarantee its absolute security.
-                </p>
-              </div>
-            </div>
-          </section>
+								<p class="legal-paragraph legal-block">
+									However, no method of transmission over the
+									Internet or electronic storage is 100%
+									secure. While we strive to use commercially
+									acceptable means to protect your
+									information, we cannot guarantee its
+									absolute security.
+								</p>
+							</div>
+						</div>
+					</section>
 
-          <!-- Cookies and Tracking -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                5. Cookies and Tracking Technologies
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>
-                  DayDreamX uses minimal cookies and local storage for essential
-                  functionality:
-                </p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>
-                    <strong>Essential Cookies:</strong> Required for
-                    authentication and maintaining your session
-                  </li>
-                  <li>
-                    <strong>Preference Cookies:</strong> Store your settings and
-                    theme choices locally
-                  </li>
-                  <li>
-                    <strong>No Tracking Cookies:</strong> We do not use cookies
-                    for tracking or analytics
-                  </li>
-                </ul>
-                <p class="mt-3">
-                  You can clear all DayDreamX cookies and local storage at any
-                  time through your browser settings or through our built-in
-                  settings page.
-                </p>
-                <p class="font-medium text-[var(--main)]">
-                  We do NOT use third-party tracking scripts, analytics
-                  services, or advertising cookies.
-                </p>
-              </div>
-            </div>
+					<!-- Cookies and Tracking -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								5. Cookies and Tracking Technologies
+							</h2>
+							<div class="legal-body">
+								<p>
+									DayDreamX uses minimal cookies and local
+									storage for essential functionality:
+								</p>
+								<ul class="legal-list">
+									<li>
+										<strong>Essential Cookies:</strong>
+										Required for authentication and
+										maintaining your session
+									</li>
+									<li>
+										<strong>Preference Cookies:</strong>
+										Store your settings and theme choices
+										locally
+									</li>
+									<li>
+										<strong>No Tracking Cookies:</strong> We
+										do not use cookies for tracking or
+										analytics
+									</li>
+								</ul>
+								<p class="legal-paragraph legal-block">
+									You can clear all DayDreamX cookies and
+									local storage at any time through your
+									browser settings or through our built-in
+									settings page.
+								</p>
+								<p class="legal-paragraph legal-emphasis">
+									We do NOT use third-party tracking scripts,
+									analytics services, or advertising cookies.
+								</p>
+							</div>
+						</div>
 
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                5.1 Third-Party Advertising
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>
-                  To support the free operation of DayDreamX, we may display
-                  advertisements from third-party advertising networks. These
-                  advertising partners may use cookies and tracking technologies
-                  subject to their own privacy policies.
-                </p>
-                <p class="font-medium text-[var(--main)]">
-                  Important: We do not have full control over the content or
-                  data collection practices of third-party advertisements
-                  displayed on our Service.
-                </p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>
-                    Third-party advertisers may place cookies on your device
-                  </li>
-                  <li>
-                    Advertising networks may collect information about your
-                    browsing behavior
-                  </li>
-                  <li>
-                    Night Network is not responsible for the privacy practices
-                    of advertising partners
-                  </li>
-                  <li>
-                    Advertisement content is not reviewed or endorsed by Night
-                    Network or DayDreamX
-                  </li>
-                </ul>
-                <p class="mt-3">You may be able to:</p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>
-                    Disable advertisements through DayDreamX settings (if
-                    available)
-                  </li>
-                  <li>Use browser extensions to block advertisements</li>
-                  <li>
-                    Adjust your browser's privacy settings to limit tracking
-                  </li>
-                  <li>
-                    Opt-out of personalized advertising through industry opt-out
-                    tools
-                  </li>
-                </ul>
-                <p class="mt-3 text-[var(--proto)] text-xs">
-                  We make reasonable efforts to work with reputable advertising
-                  partners, but we cannot guarantee the content or safety of all
-                  advertisements. Please report any inappropriate or malicious
-                  ads through our Discord server.
-                </p>
-              </div>
-            </div>
-          </section>
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								5.1 Third-Party Advertising
+							</h2>
+							<div class="legal-body">
+								<p>
+									To support the free operation of DayDreamX,
+									we may display advertisements from
+									third-party advertising networks. These
+									advertising partners may use cookies and
+									tracking technologies subject to their own
+									privacy policies.
+								</p>
+								<p class="legal-paragraph legal-emphasis">
+									Important: We do not have full control over
+									the content or data collection practices of
+									third-party advertisements displayed on our
+									Service.
+								</p>
+								<ul class="legal-list">
+									<li>
+										Third-party advertisers may place
+										cookies on your device
+									</li>
+									<li>
+										Advertising networks may collect
+										information about your browsing behavior
+									</li>
+									<li>
+										Night Network is not responsible for the
+										privacy practices of advertising
+										partners
+									</li>
+									<li>
+										Advertisement content is not reviewed or
+										endorsed by Night Network or DayDreamX
+									</li>
+								</ul>
+								<p class="legal-paragraph legal-block">
+									You may be able to:
+								</p>
+								<ul class="legal-list">
+									<li>
+										Disable advertisements through DayDreamX
+										settings (if available)
+									</li>
+									<li>
+										Use browser extensions to block
+										advertisements
+									</li>
+									<li>
+										Adjust your browser's privacy settings
+										to limit tracking
+									</li>
+									<li>
+										Opt-out of personalized advertising
+										through industry opt-out tools
+									</li>
+								</ul>
+								<p
+									class="legal-paragraph legal-note legal-block"
+								>
+									We make reasonable efforts to work with
+									reputable advertising partners, but we
+									cannot guarantee the content or safety of
+									all advertisements. Please report any
+									inappropriate or malicious ads through our
+									Discord server.
+								</p>
+							</div>
+						</div>
+					</section>
 
-          <!-- Third-Party Services -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                6. Third-Party Services and Content
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>When you use DayDreamX to access external websites:</p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>Those websites have their own privacy policies</li>
-                  <li>
-                    We act as a proxy and do not control third-party practices
-                  </li>
-                  <li>
-                    Night Network is not responsible for the privacy practices
-                    of external sites
-                  </li>
-                  <li>
-                    We recommend reviewing the privacy policies of any sites you
-                    visit
-                  </li>
-                </ul>
-                <p class="mt-3">
-                  DayDreamX may integrate with third-party services for specific
-                  features (e.g., search engines, game libraries). These
-                  integrations are clearly indicated, and you can choose which
-                  services to use.
-                </p>
-              </div>
-            </div>
-          </section>
+					<!-- Third-Party Services -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								6. Third-Party Services and Content
+							</h2>
+							<div class="legal-body">
+								<p>
+									When you use DayDreamX to access external
+									websites:
+								</p>
+								<ul class="legal-list">
+									<li>
+										Those websites have their own privacy
+										policies
+									</li>
+									<li>
+										We act as a proxy and do not control
+										third-party practices
+									</li>
+									<li>
+										Night Network is not responsible for the
+										privacy practices of external sites
+									</li>
+									<li>
+										We recommend reviewing the privacy
+										policies of any sites you visit
+									</li>
+								</ul>
+								<p class="legal-paragraph legal-block">
+									DayDreamX may integrate with third-party
+									services for specific features (e.g., search
+									engines, game libraries). These integrations
+									are clearly indicated, and you can choose
+									which services to use.
+								</p>
+							</div>
+						</div>
+					</section>
 
-          <!-- Your Rights and Choices -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                7. Your Privacy Rights and Choices
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>You have the following rights regarding your information:</p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>
-                    <strong>Access:</strong> All your data stored locally is
-                    accessible through browser developer tools or our settings
-                    page
-                  </li>
-                  <li>
-                    <strong>Deletion:</strong> You can clear all local data at
-                    any time through settings or browser controls
-                  </li>
-                  <li>
-                    <strong>Export:</strong> Your bookmarks and settings can be
-                    exported at any time
-                  </li>
-                  <li>
-                    <strong>Account Deletion:</strong> Night+ accounts can be
-                    deleted upon request, which will remove all associated data
-                  </li>
-                  <li>
-                    <strong>Opt-Out:</strong> You can choose not to use optional
-                    features like Night+ sync
-                  </li>
-                </ul>
-                <p class="mt-3 font-medium text-[var(--main)]">
-                  Since most data is stored locally on your device, you have
-                  full control over it at all times.
-                </p>
-              </div>
-            </div>
-          </section>
+					<!-- Your Rights and Choices -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								7. Your Privacy Rights and Choices
+							</h2>
+							<div class="legal-body">
+								<p>
+									You have the following rights regarding your
+									information:
+								</p>
+								<ul class="legal-list">
+									<li>
+										<strong>Access:</strong> All your data
+										stored locally is accessible through
+										browser developer tools or our settings
+										page
+									</li>
+									<li>
+										<strong>Deletion:</strong> You can clear
+										all local data at any time through
+										settings or browser controls
+									</li>
+									<li>
+										<strong>Export:</strong> Your bookmarks
+										and settings can be exported at any time
+									</li>
+									<li>
+										<strong>Account Deletion:</strong>
+										Night+ accounts can be deleted upon
+										request, which will remove all
+										associated data
+									</li>
+									<li>
+										<strong>Opt-Out:</strong> You can choose
+										not to use optional features like Night+
+										sync
+									</li>
+								</ul>
+								<p
+									class="legal-paragraph legal-emphasis legal-block"
+								>
+									Since most data is stored locally on your
+									device, you have full control over it at all
+									times.
+								</p>
+							</div>
+						</div>
+					</section>
 
-          <!-- Children's Privacy -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                8. Children's Privacy
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>
-                  DayDreamX is intended for general audiences. We do not
-                  knowingly collect personal information from children under 13
-                  years of age.
-                </p>
-                <p>
-                  If you are a parent or guardian and believe that your child
-                  has provided us with personal information, please contact us,
-                  and we will take steps to remove such information.
-                </p>
-                <p>
-                  We encourage parents and guardians to monitor their children's
-                  Internet usage and help enforce this Privacy Policy by
-                  instructing their children to never provide personal
-                  information through our Service without permission.
-                </p>
-              </div>
-            </div>
-          </section>
+					<!-- Children's Privacy -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">8. Children's Privacy</h2>
+							<div class="legal-body">
+								<p>
+									DayDreamX is intended for general audiences.
+									We do not knowingly collect personal
+									information from children under 13 years of
+									age.
+								</p>
+								<p>
+									If you are a parent or guardian and believe
+									that your child has provided us with
+									personal information, please contact us, and
+									we will take steps to remove such
+									information.
+								</p>
+								<p>
+									We encourage parents and guardians to
+									monitor their children's Internet usage and
+									help enforce this Privacy Policy by
+									instructing their children to never provide
+									personal information through our Service
+									without permission.
+								</p>
+							</div>
+						</div>
+					</section>
 
-          <!-- Data Retention -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                9. Data Retention
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>We retain information only as long as necessary:</p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>
-                    <strong>Local Data:</strong> Stored indefinitely on your
-                    device until you clear it
-                  </li>
-                  <li>
-                    <strong>Server Logs:</strong> Automatically deleted after
-                    7-14 days
-                  </li>
-                  <li>
-                    <strong>Night+ Data:</strong> Retained while your account is
-                    active; deleted within 30 days after account deletion
-                  </li>
-                  <li>
-                    <strong>Support Communications:</strong> Retained for a
-                    reasonable period to resolve your inquiry
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </section>
+					<!-- Data Retention -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">9. Data Retention</h2>
+							<div class="legal-body">
+								<p>
+									We retain information only as long as
+									necessary:
+								</p>
+								<ul class="legal-list">
+									<li>
+										<strong>Local Data:</strong> Stored
+										indefinitely on your device until you
+										clear it
+									</li>
+									<li>
+										<strong>Server Logs:</strong>
+										Automatically deleted after 7-14 days
+									</li>
+									<li>
+										<strong>Night+ Data:</strong> Retained
+										while your account is active; deleted
+										within 30 days after account deletion
+									</li>
+									<li>
+										<strong>Support Communications:</strong>
+										Retained for a reasonable period to
+										resolve your inquiry
+									</li>
+								</ul>
+							</div>
+						</div>
+					</section>
 
-          <!-- International Users -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                10. International Data Transfers & Jurisdiction
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p class="font-medium text-[var(--main)]">
-                  Our production servers are located in the
-                  <strong>United States and Canada</strong>. As such, our
-                  services are subject to the laws and regulations of these
-                  jurisdictions.
-                </p>
-                <p>
-                  DayDreamX may be accessed from countries around the world. If
-                  you are located outside the United States or Canada, please be
-                  aware that:
-                </p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>
-                    Any information you provide may be transferred to and
-                    processed in the United States and/or Canada
-                  </li>
-                  <li>
-                    We operate under U.S. and Canadian data protection laws and
-                    regulations
-                  </li>
-                  <li>
-                    These countries may have different data protection rules
-                    than your country of residence
-                  </li>
-                  <li>
-                    We comply with applicable legal requests from U.S. and
-                    Canadian authorities
-                  </li>
-                </ul>
-                <p class="mt-3">
-                  By using the Service, you consent to the transfer of
-                  information to the United States and Canada and acknowledge
-                  that our operations are governed by the laws of these
-                  jurisdictions.
-                </p>
-              </div>
-            </div>
-          </section>
+					<!-- International Users -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								10. International Data Transfers & Jurisdiction
+							</h2>
+							<div class="legal-body">
+								<p class="legal-paragraph legal-emphasis">
+									Our production servers are located in the
+									<strong>United States and Canada</strong>.
+									As such, our services are subject to the
+									laws and regulations of these jurisdictions.
+								</p>
+								<p>
+									DayDreamX may be accessed from countries
+									around the world. If you are located outside
+									the United States or Canada, please be aware
+									that:
+								</p>
+								<ul class="legal-list">
+									<li>
+										Any information you provide may be
+										transferred to and processed in the
+										United States and/or Canada
+									</li>
+									<li>
+										We operate under U.S. and Canadian data
+										protection laws and regulations
+									</li>
+									<li>
+										These countries may have different data
+										protection rules than your country of
+										residence
+									</li>
+									<li>
+										We comply with applicable legal requests
+										from U.S. and Canadian authorities
+									</li>
+								</ul>
+								<p class="legal-paragraph legal-block">
+									By using the Service, you consent to the
+									transfer of information to the United States
+									and Canada and acknowledge that our
+									operations are governed by the laws of these
+									jurisdictions.
+								</p>
+							</div>
+						</div>
+					</section>
 
-          <!-- Do Not Track -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                11. Do Not Track Signals
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>
-                  Since we don't track users, Do Not Track (DNT) browser signals
-                  don't need special handling. However, we respect DNT signals
-                  and implement privacy-by-design principles throughout our
-                  service.
-                </p>
-              </div>
-            </div>
-          </section>
+					<!-- Do Not Track -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								11. Do Not Track Signals
+							</h2>
+							<div class="legal-body">
+								<p>
+									Since we don't track users, Do Not Track
+									(DNT) browser signals don't need special
+									handling. However, we respect DNT signals
+									and implement privacy-by-design principles
+									throughout our service.
+								</p>
+							</div>
+						</div>
+					</section>
 
-          <!-- Changes to Privacy Policy -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                12. Changes to This Privacy Policy
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>
-                  We may update this Privacy Policy from time to time. We will
-                  notify you of any changes by:
-                </p>
-                <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>Posting the new Privacy Policy on this page</li>
-                  <li>
-                    Updating the "Last Updated" date at the top of this policy
-                  </li>
-                  <li>
-                    Notifying users through the Service for material changes
-                  </li>
-                </ul>
-                <p class="mt-3">
-                  You are advised to review this Privacy Policy periodically for
-                  any changes. Changes to this Privacy Policy are effective when
-                  they are posted on this page.
-                </p>
-              </div>
-            </div>
-          </section>
+					<!-- Changes to Privacy Policy -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">
+								12. Changes to This Privacy Policy
+							</h2>
+							<div class="legal-body">
+								<p>
+									We may update this Privacy Policy from time
+									to time. We will notify you of any changes
+									by:
+								</p>
+								<ul class="legal-list">
+									<li>
+										Posting the new Privacy Policy on this
+										page
+									</li>
+									<li>
+										Updating the "Last Updated" date at the
+										top of this policy
+									</li>
+									<li>
+										Notifying users through the Service for
+										material changes
+									</li>
+								</ul>
+								<p class="legal-paragraph legal-block">
+									You are advised to review this Privacy
+									Policy periodically for any changes. Changes
+									to this Privacy Policy are effective when
+									they are posted on this page.
+								</p>
+							</div>
+						</div>
+					</section>
 
-          <!-- Contact -->
-          <section class="space-y-4">
-            <div
-              class="bg-[var(--bg-1)] rounded-xl p-6 ring-1 ring-inset ring-[var(--white-08)] backdrop-blur"
-            >
-              <h2 class="text-2xl font-semibold text-[var(--text)] mb-4">
-                13. Contact Us
-              </h2>
-              <div class="space-y-3 text-sm text-[var(--text)] leading-relaxed">
-                <p>
-                  If you have any questions about this Privacy Policy or our
-                  data practices, please contact us:
-                </p>
-                <ul class="space-y-2">
-                  <li>
-                    <strong>Discord Server:</strong>
-                    <a
-                      href="https://discord.night-x.com"
-                      class="text-[var(--main)] hover:text-[var(--main)]/80"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      https://discord.night-x.com
-                    </a>
-                  </li>
-                  <li>
-                    <strong>GitLab Repository:</strong>
-                    <a
-                      href="https://gitlab.com/nightnetwork/daydreamx"
-                      class="text-[var(--main)] hover:text-[var(--main)]/80"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      https://gitlab.com/nightnetwork/daydreamx
-                    </a>
-                  </li>
-                  <li>
-                    <strong>GitLab Issues:</strong> For privacy-related
-                    concerns, you can open an issue on our repository
-                  </li>
-                </ul>
-                <p class="mt-4 text-[var(--main)] font-medium">
-                  We are committed to protecting your privacy and will respond
-                  to your inquiries promptly.
-                </p>
-              </div>
-            </div>
-          </section>
+					<!-- Contact -->
+					<section class="legal-section">
+						<div class="legal-card">
+							<h2 class="legal-heading">13. Contact Us</h2>
+							<div class="legal-body">
+								<p>
+									If you have any questions about this Privacy
+									Policy or our data practices, please contact
+									us:
+								</p>
+								<ul class="legal-list legal-list-plain">
+									<li>
+										<strong>Discord Server:</strong>
+										<a
+											href="https://discord.night-x.com"
+											class="legal-link"
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											https://discord.night-x.com
+										</a>
+									</li>
+									<li>
+										<strong>GitLab Repository:</strong>
+										<a
+											href="https://gitlab.com/nightnetwork/daydreamx"
+											class="legal-link"
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											https://gitlab.com/nightnetwork/daydreamx
+										</a>
+									</li>
+									<li>
+										<strong>GitLab Issues:</strong> For
+										privacy-related concerns, you can open
+										an issue on our repository
+									</li>
+								</ul>
+								<p
+									class="legal-paragraph legal-emphasis legal-block legal-block-spacious"
+								>
+									We are committed to protecting your privacy
+									and will respond to your inquiries promptly.
+								</p>
+							</div>
+						</div>
+					</section>
 
-          <!-- Footer -->
-          <div class="text-center py-8 text-sm text-[var(--proto)]">
-            <p>© 2025 DayDreamX. All rights reserved.</p>
-            <div class="mt-4 flex justify-center gap-4">
-              <a
-                href="../privacy/"
-                class="text-[var(--main)] hover:text-[var(--main)]/80"
-              >
-                Privacy Policy
-              </a>
-              <span>•</span>
-              <a
-                href="../terms/"
-                class="text-[var(--main)] hover:text-[var(--main)]/80"
-              >
-                Terms of Service
-              </a>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
-  </body>
+					<!-- Footer -->
+					<footer class="legal-footer">
+						<p>© 2025 DayDreamX. All rights reserved.</p>
+						<div class="legal-footer-links">
+							<a href="../privacy/" class="legal-link">
+								Privacy Policy
+							</a>
+							<span>•</span>
+							<a href="../terms/" class="legal-link">
+								Terms of Service
+							</a>
+						</div>
+					</footer>
+				</div>
+			</main>
+		</div>
+	</body>
 </html>

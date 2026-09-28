@@ -37,7 +37,13 @@ export function fontObfuscationPlugin() {
         obfuscatePlaceholders: false
       };
       (function() {
-        var b = self.__ddxBase || '/';
+        // Compute the app base directly (this runs before the app chunks set
+        // self.__ddxBase). Mirrors src/core/shared/path.ts: everything up to and
+        // including the /app/ workspace marker, else '/'. Required so the
+        // co-located ob-fonts.{css,js} (under /app/) resolve — not the root.
+        var p = self.location.pathname;
+        var m = p.indexOf('/app/');
+        var b = self.__ddxBase || (m !== -1 ? p.slice(0, m + 5) : '/');
         var link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = b + 'ob-fonts.css';

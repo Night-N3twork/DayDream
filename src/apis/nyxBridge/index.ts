@@ -9,6 +9,7 @@ import { NyxChannel } from './channel';
 import { TabResolver } from './tabResolver';
 import { HandleStore } from './handleStore';
 import { METHOD_REGISTRY, PROTOCOL_VERSION } from './api';
+import { basePath } from '@core/shared/path';
 import { dispatch } from './handlers';
 import { CdpHelper } from './cdp';
 import type { AgentMessage } from './frameTransport';
@@ -200,7 +201,7 @@ export class NyxBridge {
 
 	private async buildClientScript(): Promise<string | null> {
 		try {
-			const url = `${location.origin}/assets/nyx-bridge-client.js`;
+			const url = `${location.origin}${basePath}assets/nyx-bridge-client.js`;
 			const res = await fetch(url);
 			if (!res.ok) return null;
 			const body = await res.text();

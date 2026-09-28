@@ -10,7 +10,6 @@ import { createIcons, icons } from 'lucide';
 import { resolvePath } from '@utils/basepath';
 
 import { BookmarkManager, isBookmark } from '@apis/bookmarks';
-import { Proxy } from '@apis/proxy';
 import { Nightmare } from '@pkgs/Nightmare';
 
 interface Shortcut {
@@ -22,7 +21,6 @@ interface Shortcut {
 
 class NewTabShortcuts {
 	private bookmarkManager: BookmarkManager;
-	private proxy: Proxy;
 	private ui: Nightmare;
 	private shortcuts: Shortcut[] = [];
 	private currentEditingId: string | null = null;
@@ -44,27 +42,25 @@ class NewTabShortcuts {
 
 	constructor() {
 		this.bookmarkManager = new BookmarkManager();
-		this.proxy = window.parent.proxy;
-		const proxy = this.proxy;
 		this.ui = new Nightmare();
-		(async proxy => {
+		(async () => {
 			const proxySettings = window.parent.ProxySettings || 'sj';
 			const swConfig =
 				window.parent.SWconfig?.[
 					proxySettings as keyof typeof window.parent.SWconfig
 				];
 			if (swConfig) {
-				await proxy.registerSW(swConfig);
+				await window.parent.proxy.registerSW(swConfig);
 			}
-			await proxy.setTransports();
-			const transportState = await proxy.getTransports();
+			await window.parent.proxy.setTransports();
+			const transportState = await window.parent.proxy.getTransports();
 			if (transportState.controller == null) {
-				await proxy.setTransports();
+				await window.parent.proxy.setTransports();
 			}
-		})(proxy);
+		})();
 
 		setTimeout(() => {
-			this.proxy.setBookmarkManager(this.bookmarkManager);
+			window.parent.proxy.setBookmarkManager(this.bookmarkManager);
 			this.init();
 		}, 20);
 	}
@@ -532,7 +528,7 @@ class NewTabShortcuts {
 				return cachedFavicon;
 			}
 
-			const faviconUrl = await this.proxy.getFavicon(url);
+			const faviconUrl = await window.parent.proxy.getFavicon(url);
 			return faviconUrl || this.getFallbackFavicon();
 		} catch (error) {
 			console.warn('Failed to get favicon for', url, error);

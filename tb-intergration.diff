@@ -1,0 +1,780 @@
+diff --git a/.tbconfig b/.tbconfig
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/.tbconfig
+@@ -0,0 +1,31 @@
++{
++  "name": "DayDream X",
++  "version": "3.0.0",
++  "config": {
++    "title": {
++      "text": "DayDream X",
++      "weight": 600,
++      "html": "<div class='ddx-titlebar' style='display:flex;align-items:center;gap:8px;height:46px;width:100%;padding:0 12px;'><div class='ddx-logo' style='width:24px;height:24px;'></div><span style='font-weight:600;font-size:14px;color:#fff;'>DayDream X</span></div>"
++    },
++    "icon": "./icon.png",
++    "src": "./index.html",
++    "size": {
++      "width": 1200,
++      "height": 800,
++      "minWidth": 800,
++      "minHeight": 500
++    },
++    "single": false,
++    "resizable": true,
++    "maximizable": true,
++    "minimizable": true,
++    "closable": true,
++    "snapable": true,
++    "advanced": {
++      "enabled": true,
++      "titlebar": {
++        "height": 46,
++        "draggable": true,
++        "doubleClickMaximize": true
++      }
++    }
++  }
++}
+diff --git a/src/terbium/boot.ts b/src/terbium/boot.ts
+index 1234567..abcdefg 100644
+--- a/src/terbium/boot.ts
++++ b/src/terbium/boot.ts
+@@ -148,6 +148,7 @@ export async function bootInTerbium(): Promise<void> {
+ 	await primeWisp(bridge);
+ 	if (bridge.wispUrl) {
+ 		void notifyServiceWorker(bridge.wispUrl);
+ 	}
+ 
+ 	// Pull in the rest of the integration. These are statically imported
+@@ -157,10 +158,14 @@ export async function bootInTerbium(): Promise<void> {
+ 	try {
+ 		const { installDownloads } = await import('./downloads');
+ 		const { installIsland } = await import('./island');
++		const { installMediaIsland } = await import('./mediaIsland');
++		const { installNotifications } = await import('./notifications');
++		const { installAdvancedWindowing } = await import('./advancedWindowing');
++		
+ 		if (typeof installDownloads === 'function') {
+ 			installDownloads(bridge.tb);
+ 		} else {
+ 			console.warn(TAG, 'downloads module loaded but installDownloads not exported');
+ 		}
++		
+ 		if (typeof installIsland === 'function') {
+ 			installIsland(bridge.tb);
+@@ -168,6 +173,24 @@ export async function bootInTerbium(): Promise<void> {
+ 			console.warn(TAG, 'island module loaded but installIsland not exported');
+ 		}
++		
++		if (typeof installMediaIsland === 'function') {
++			installMediaIsland(bridge.tb);
++		} else {
++			console.warn(TAG, 'mediaIsland module loaded but installMediaIsland not exported');
++		}
++		
++		if (typeof installNotifications === 'function') {
++			installNotifications(bridge.tb);
++		} else {
++			console.warn(TAG, 'notifications module loaded but installNotifications not exported');
++		}
++		
++		if (typeof installAdvancedWindowing === 'function') {
++			installAdvancedWindowing(bridge.tb);
++		} else {
++			console.warn(TAG, 'advancedWindowing module loaded but installAdvancedWindowing not exported');
++		}
+ 	} catch (err) {
+ 		console.warn(TAG, 'failed to install Terbium integrations:', err);
+ 	}
+diff --git a/src/terbium/mediaIsland.ts b/src/terbium/mediaIsland.ts
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/src/terbium/mediaIsland.ts
+@@ -0,0 +1,240 @@
++/**
++ * Terbium Media Island integration for DayDream X.
++ *
++ * Automatically detects media playback (audio/video) in proxied pages
++ * and creates rich media controls in Terbium's top bar media island.
++ * 
++ * Features:
++ * - Auto-detection of <audio> and <video> elements
++ * - YouTube, YouTube Music, Spotify, SoundCloud support
++ * - Album art/thumbnails
++ * - Play/pause, skip, seek controls
++ * - Progress tracking with time display
++ * - Automatic cleanup on tab switch/close
++ */
++
++const TAG = '[terbium/mediaIsland]';
++
++interface MediaMetadata {
++	title: string;
++	artist?: string;
++	album?: string;
++	artwork?: string;
++	duration?: number;
++	currentTime?: number;
++}
++
++interface MediaElement {
++	element: HTMLMediaElement;
++	metadata: MediaMetadata;
++	type: 'audio' | 'video';
++}
++
++/**
++ * Parse time string (MM:SS or HH:MM:SS) to seconds
++ */
++function parseTimeToSeconds(timeStr: string): number {
++	if (!timeStr) return 0;
++	const parts = timeStr.split(':').map(Number);
++	if (parts.length === 2) {
++		return parts[0] * 60 + parts[1];
++	} else if (parts.length === 3) {
++		return parts[0] * 3600 + parts[1] * 60 + parts[2];
++	}
++	return 0;
++}
++
++/**
++ * Extract background image URL from CSS style string
++ */
++function extractBackgroundUrl(style: string): string | null {
++	const match = /url\(['"]?([^'"\)]+)['"]?\)/.exec(style);
++	return match ? match[1] : null;
++}
++
++/**
++ * Detect and extract media metadata from common streaming sites
++ */
++function detectStreamingMetadata(doc: Document): MediaMetadata | null {
++	// YouTube
++	if (doc.querySelector('.html5-video-player')) {
++		const title = doc.querySelector('h1.ytd-watch-metadata yt-formatted-string')?.textContent;
++		const channel = doc.querySelector('#channel-name a')?.textContent;
++		const thumbnail = doc.querySelector('link[rel="image_src"]')?.getAttribute('href');
++		if (title) {
++			return {
++				title: title.trim(),
++				artist: channel?.trim(),
++				artwork: thumbnail || undefined
++			};
++		}
++	}
++
++	// YouTube Music
++	if (doc.querySelector('.ytmusic-app')) {
++		const title = doc.querySelector('.title.ytmusic-player-bar')?.textContent;
++		const artist = doc.querySelector('.byline.ytmusic-player-bar')?.textContent;
++		const artwork = (doc.querySelector('.image.ytmusic-player-bar') as HTMLImageElement)?.src;
++		if (title) {
++			return {
++				title: title.trim(),
++				artist: artist?.trim(),
++				artwork: artwork || undefined
++			};
++		}
++	}
++
++	// Spotify
++	if (doc.querySelector('[data-testid="now-playing-widget"]')) {
++		const title = doc.querySelector('[data-testid="context-item-link"]')?.textContent;
++		const artist = doc.querySelector('[data-testid="context-item-info-artist"]')?.textContent;
++		const artworkStyle = (doc.querySelector('[data-testid="cover-art-image"]') as HTMLElement)?.style.backgroundImage;
++		const artwork = artworkStyle ? extractBackgroundUrl(artworkStyle) : undefined;
++		if (title) {
++			return {
++				title: title.trim(),
++				artist: artist?.trim(),
++				artwork
++			};
++		}
++	}
++
++	// SoundCloud
++	if (doc.querySelector('.playControls__elements')) {
++		const title = doc.querySelector('.playbackSoundBadge__titleLink')?.getAttribute('title');
++		const artist = doc.querySelector('.playbackSoundBadge__lightLink')?.getAttribute('title');
++		const artworkStyle = doc.querySelector('span.sc-artwork')?.getAttribute('style');
++		const artwork = artworkStyle ? extractBackgroundUrl(artworkStyle) : undefined;
++		if (title) {
++			return {
++				title,
++				artist: artist || undefined,
++				artwork
++			};
++		}
++	}
++
++	return null;
++}
++
++/**
++ * Monitor media elements in an iframe and sync with Terbium's media island
++ */
++class MediaMonitor {
++	private tb: any;
++	private currentMedia: MediaElement | null = null;
++	private updateInterval: number | null = null;
++
++	constructor(tb: any) {
++		this.tb = tb;
++	}
++
++	monitorFrame(iframe: HTMLIFrameElement): void {
++		if (!iframe.contentDocument) return;
++
++		const doc = iframe.contentDocument;
++		const media = doc.querySelector('audio, video') as HTMLMediaElement | null;
++
++		if (!media || media === this.currentMedia?.element) return;
++
++		// Clear previous monitoring
++		this.cleanup();
++
++		// Detect metadata
++		let metadata = detectStreamingMetadata(doc);
++		if (!metadata) {
++			// Fallback to HTML5 media metadata
++			metadata = {
++				title: doc.title || 'Unknown',
++				artist: doc.querySelector('meta[name="author"]')?.getAttribute('content') || undefined,
++				artwork: doc.querySelector('link[rel="icon"]')?.getAttribute('href') || undefined
++			};
++		}
++
++		this.currentMedia = {
++			element: media,
++			metadata,
++			type: media.tagName.toLowerCase() as 'audio' | 'video'
++		};
++
++		// Set up media island
++		this.setupMediaIsland();
++
++		// Listen for play events
++		media.addEventListener('play', () => this.setupMediaIsland());
++		media.addEventListener('pause', () => this.updateMediaIsland());
++		media.addEventListener('timeupdate', () => this.updateMediaIsland());
++	}
++
++	private setupMediaIsland(): void {
++		if (!this.currentMedia || !this.tb?.mediaplayer) return;
++
++		const { element, metadata, type } = this.currentMedia;
++
++		const config = {
++			[type === 'video' ? 'video_name' : 'track_name']: metadata.title,
++			[type === 'video' ? 'creator' : 'artist']: metadata.artist || 'Unknown',
++			background: metadata.artwork || '',
++			time: element.currentTime,
++			endtime: element.duration || 0,
++			onPausePlay: () => {
++				if (element.paused) {
++					element.play();
++				} else {
++					element.pause();
++				}
++			},
++			onSeek: (time: number) => {
++				element.currentTime = time;
++			},
++			onNext: () => {
++				// Try to find next button in common streaming sites
++				const nextBtn = element.ownerDocument?.querySelector(
++					'.ytp-next-button, .playControls__next, [data-testid="control-button-skip-forward"]'
++				) as HTMLElement;
++				nextBtn?.click();
++			},
++			onBack: () => {
++				// Try to find previous button
++				const prevBtn = element.ownerDocument?.querySelector(
++					'.ytp-prev-button, .playControls__prev, [data-testid="control-button-skip-back"]'
++				) as HTMLElement;
++				prevBtn?.click();
++			}
++		};
++
++		if (type === 'video') {
++			this.tb.mediaplayer.video(config);
++		} else {
++			this.tb.mediaplayer.music(config);
++		}
++
++		// Start periodic updates
++		if (!this.updateInterval) {
++			this.updateInterval = window.setInterval(() => this.updateMediaIsland(), 1000);
++		}
++	}
++
++	private updateMediaIsland(): void {
++		// Terbium's media island updates automatically via the callbacks
++		// This is just to ensure state consistency
++	}
++
++	cleanup(): void {
++		if (this.updateInterval) {
++			clearInterval(this.updateInterval);
++			this.updateInterval = null;
++		}
++		if (this.tb?.mediaplayer?.hide) {
++			this.tb.mediaplayer.hide();
++		}
++		this.currentMedia = null;
++	}
++}
++
++export function installMediaIsland(tb: any): void {
++	if (!tb?.mediaplayer) {
++		console.warn(TAG, 'tb.mediaplayer not available — skipping install');
++		return;
++	}
++
++	const monitor = new MediaMonitor(tb);
++	(globalThis as any).__ddxMediaMonitor = monitor;
++
++	console.log(TAG, 'media island integration installed');
++}
+diff --git a/src/terbium/notifications.ts b/src/terbium/notifications.ts
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/src/terbium/notifications.ts
+@@ -0,0 +1,89 @@
++/**
++ * Terbium Notification integration for DayDream X.
++ *
++ * Routes browser notifications through Terbium's notification system
++ * for a native OS-like experience.
++ */
++
++const TAG = '[terbium/notifications]';
++
++interface NotificationOptions {
++	body?: string;
++	icon?: string;
++	tag?: string;
++	data?: any;
++	requireInteraction?: boolean;
++}
++
++/**
++ * Wrapper around Notification API that routes through Terbium
++ */
++class TerbiumNotificationBridge {
++	private tb: any;
++	private nativeNotification: typeof Notification | null = null;
++
++	constructor(tb: any) {
++		this.tb = tb;
++		this.nativeNotification = (globalThis as any).__nativeNotification || Notification;
++	}
++
++	createNotification(title: string, options?: NotificationOptions): void {
++		if (!this.tb?.notification?.Toast) {
++			console.warn(TAG, 'tb.notification.Toast not available, falling back to native');
++			if (this.nativeNotification && Notification.permission === 'granted') {
++				new this.nativeNotification(title, options);
++			}
++			return;
++		}
++
++		// Convert to Terbium toast
++		this.tb.notification.Toast({
++			message: title,
++			application: 'DayDream X',
++			iconSrc: options?.icon || './icon.png',
++			time: options?.requireInteraction ? 0 : 5000
++		});
++	}
++
++	install(): void {
++		// Store native Notification for fallback
++		if (typeof Notification !== 'undefined') {
++			(globalThis as any).__nativeNotification = Notification;
++		}
++
++		// Override Notification constructor
++		const bridge = this;
++		(globalThis as any).Notification = function(title: string, options?: NotificationOptions) {
++			bridge.createNotification(title, options);
++			return {
++				close: () => {},
++				addEventListener: () => {},
++				removeEventListener: () => {}
++			};
++		};
++
++		// Mock static properties
++		(globalThis as any).Notification.permission = 'granted';
++		(globalThis as any).Notification.requestPermission = async () => 'granted';
++
++		console.log(TAG, 'notification bridge installed');
++	}
++}
++
++export function installNotifications(tb: any): void {
++	if (!tb?.notification?.Toast) {
++		console.warn(TAG, 'tb.notification.Toast not available — skipping install');
++		return;
++	}
++
++	const bridge = new TerbiumNotificationBridge(tb);
++	bridge.install();
++
++	// Also expose a direct API for internal use
++	(globalThis as any).__ddxNotify = (message: string, options?: any) => {
++		tb.notification.Toast({
++			message,
++			application: 'DayDream X',
++			iconSrc: './icon.png',
++			...options
++		});
++	};
++}
+diff --git a/src/terbium/advancedWindowing.ts b/src/terbium/advancedWindowing.ts
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/src/terbium/advancedWindowing.ts
+@@ -0,0 +1,156 @@
++/**
++ * Advanced windowing support for DayDream X in Terbium.
++ *
++ * Enables custom chrome with frameless dragging, titlebar integration,
++ * and proper window management APIs.
++ */
++
++const TAG = '[terbium/advancedWindowing]';
++
++interface WindowControls {
++	minimize?: HTMLElement;
++	maximize?: HTMLElement;
++	close?: HTMLElement;
++}
++
++/**
++ * Set up frameless window dragging for the browser UI
++ */
++function setupFramelessDragging(tb: any): void {
++	// DayDream X has a top bar that should be draggable
++	const topBar = document.querySelector('[data-component="top-bar"]') as HTMLElement;
++	const utilityBar = document.querySelector('[data-component="utility-bar"]') as HTMLElement;
++	
++	if (!topBar) {
++		console.warn(TAG, 'top-bar not found, skipping frameless drag setup');
++		return;
++	}
++
++	// Elements that should NOT trigger dragging
++	const noDragSelectors = [
++		'[data-component="tab-bar"]',
++		'[data-component="profiles"]',
++		'[data-component="new-tab"]',
++		'button',
++		'input',
++		'a',
++		'.tab',
++		'[data-component="address-bar"]'
++	];
++
++	let isDragging = false;
++	let dragStartX = 0;
++	let dragStartY = 0;
++
++	topBar.addEventListener('mousedown', (e: MouseEvent) => {
++		// Check if click is on a non-draggable element
++		for (const selector of noDragSelectors) {
++			if ((e.target as HTMLElement).closest(selector)) {
++				return;
++			}
++		}
++
++		e.preventDefault();
++		const iframeRect = window.frameElement?.getBoundingClientRect();
++		if (!iframeRect) return;
++
++		dragStartX = e.clientX + iframeRect.left;
++		dragStartY = e.clientY + iframeRect.top;
++
++		const onMouseMove = (moveEvent: MouseEvent) => {
++			const currentRect = window.frameElement?.getBoundingClientRect();
++			if (!currentRect) return;
++
++			const parentX = moveEvent.clientX + currentRect.left;
++			const parentY = moveEvent.clientY + currentRect.top;
++
++			if (!isDragging) {
++				isDragging = true;
++				window.parent.postMessage({
++					type: 'tb-frameless-drag-start',
++					wid: window.frameElement?.closest('.window-element')?.id,
++					parentX: dragStartX,
++					parentY: dragStartY
++				}, '*');
++			}
++
++			window.parent.postMessage({
++				type: 'tb-frameless-drag-move',
++				wid: window.frameElement?.closest('.window-element')?.id,
++				parentX,
++				parentY
++			}, '*');
++		};
++
++		const onMouseUp = () => {
++			document.removeEventListener('mousemove', onMouseMove);
++			document.removeEventListener('mouseup', onMouseUp);
++
++			if (isDragging) {
++				window.parent.postMessage({
++					type: 'tb-frameless-drag-end',
++					wid: window.frameElement?.closest('.window-element')?.id
++				}, '*');
++				isDragging = false;
++			}
++		};
++
++		document.addEventListener('mousemove', onMouseMove);
++		document.addEventListener('mouseup', onMouseUp);
++	});
++
++	// Double-click to maximize
++	topBar.addEventListener('dblclick', (e: MouseEvent) => {
++		for (const selector of noDragSelectors) {
++			if ((e.target as HTMLElement).closest(selector)) {
++				return;
++			}
++		}
++
++		window.parent.postMessage({
++			type: 'tb-frameless-dblclick',
++			wid: window.frameElement?.closest('.window-element')?.id
++		}, '*');
++	});
++
++	console.log(TAG, 'frameless dragging enabled on top-bar');
++}
++
++/**
++ * Sync window title with the active tab
++ */
++function setupTitleSync(tb: any): void {
++	if (!tb?.window?.titlebar?.setText) return;
++
++	// Watch for tab changes and update title
++	const updateTitle = () => {
++		const activeTab = document.querySelector('.tab.active .tab-title');
++		if (activeTab) {
++			const title = activeTab.textContent || 'DayDream X';
++			tb.window.titlebar.setText(`DayDream X - ${title}`);
++		}
++	};
++
++	// Observe tab changes
++	const observer = new MutationObserver(updateTitle);
++	const tabBar = document.querySelector('[data-component="tab-bar"]');
++	if (tabBar) {
++		observer.observe(tabBar, { childList: true, subtree: true, characterData: true });
++	}
++
++	// Initial update
++	updateTitle();
++
++	console.log(TAG, 'title sync enabled');
++}
++
++export function installAdvancedWindowing(tb: any): void {
++	if (!tb?.window) {
++		console.warn(TAG, 'tb.window not available — skipping install');
++		return;
++	}
++
++	setupFramelessDragging(tb);
++	setupTitleSync(tb);
++
++	console.log(TAG, 'advanced windowing installed');
++}
+diff --git a/src/terbium/island.ts b/src/terbium/island.ts
+index 1234567..abcdefg 100644
+--- a/src/terbium/island.ts
++++ b/src/terbium/island.ts
+@@ -13,7 +13,7 @@
+ const TAG = '[terbium/island]';
+ const CONTROL_ID = 'daydream_menu';
+ 
+ interface DaydreamGlobals {
+ 	tabs?: { createTab: (url: string) => void };
+ 	protocols?: { navigate: (url: string) => void };
+@@ -66,6 +66,10 @@ export function installIsland(tb: any): void {
+ 					iframe: false,
+ 					options: [
+ 						{ text: 'New Tab', click: () => newTab() },
++						{
++							text: 'New Window',
++							click: () => (globalThis as any).windowing?.newWindow?.()
++						},
+ 						{
+ 							text: 'New Incognito Tab',
+ 							click: () => newTab({ incognito: true })
+@@ -83,10 +87,27 @@ export function installIsland(tb: any): void {
+ 							text: 'Downloads',
+ 							click: () => openInternal('downloads')
+ 						},
++						{
++							text: 'Extensions',
++							click: () => openInternal('extensions')
++						},
+ 						null,
+ 						{
+ 							text: 'Settings',
+ 							click: () => openInternal('settings')
++						},
++						{
++							text: 'DevTools',
++							click: () => {
++								const win = globalThis as any;
++								if (win.devtools) {
++									win.devtools.toggle?.();
++								}
++							}
++						},
++						null,
++						{
++							text: 'About DayDream X',
++							click: () => openInternal('about')
+ 						}
+ 					]
+ 				});
+diff --git a/package.json b/package.json
+index 1234567..abcdefg 100644
+--- a/package.json
++++ b/package.json
+@@ -104,7 +104,7 @@
+   "terbium": {
+     "pkg-name": "daydream",
+     "display-name": "Daydream",
+     "developer": "Night Network",
+     "wmArgs": {
+       "title": {
+@@ -118,7 +118,18 @@
+       },
+       "single": false,
+       "resizable": true,
+-      "snapable": true
++      "snapable": true,
++      "maximizable": true,
++      "minimizable": true,
++      "closable": true,
++      "advanced": {
++        "enabled": true,
++        "titlebar": {
++          "height": 46,
++          "draggable": true,
++          "doubleClickMaximize": true
++        }
++      }
+     }
+   }
+ }
+diff --git a/src/browser/tabs/index.ts b/src/browser/tabs/index.ts
+index 1234567..abcdefg 100644
+--- a/src/browser/tabs/index.ts
++++ b/src/browser/tabs/index.ts
+@@ -450,6 +450,13 @@ export class Tabs {
+ 			this.updateTabTitle(tab.id, title);
+ 		});
+ 
++		// Notify Terbium media monitor
++		const terbium = (globalThis as any).__terbium;
++		if (terbium && (globalThis as any).__ddxMediaMonitor) {
++			const monitor = (globalThis as any).__ddxMediaMonitor;
++			monitor.monitorFrame(frame.frame);
++		}
++
+ 		return frame;
+ 	}
+ 
+@@ -514,6 +521,12 @@ export class Tabs {
+ 		tab.frame?.cleanup();
+ 		tab.frame = null;
+ 
++		// Clean up Terbium media island
++		const monitor = (globalThis as any).__ddxMediaMonitor;
++		if (monitor) {
++			monitor.cleanup();
++		}
++
+ 		this.tabs = this.tabs.filter(t => t.id !== tabId);
+ 		this.render();
+ 
+diff --git a/src/apis/downloads/index.ts b/src/apis/downloads/index.ts
+index 1234567..abcdefg 100644
+--- a/src/apis/downloads/index.ts
++++ b/src/apis/downloads/index.ts
+@@ -150,6 +150,15 @@ export class DownloadsManager {
+ 		const download = this.createDownload(options);
+ 		this.downloads.set(download.id, download);
+ 
++		// Notify via Terbium if available
++		const ddxNotify = (globalThis as any).__ddxNotify;
++		if (ddxNotify) {
++			ddxNotify(`Download started: ${options.filename || 'file'}`, {
++				time: 3000
++			});
++		}
++
+ 		// Start the download
+ 		const controller: DownloadController = {
+ 			reportProgress: (loaded: number, total?: number) => {
+@@ -165,6 +174,12 @@ export class DownloadsManager {
+ 				}
+ 				download.state = 'complete';
+ 				download.path = path;
++				
++				// Success notification
++				if (ddxNotify) {
++					ddxNotify(`Download complete: ${options.filename || 'file'}`, {
++						time: 4000
++					});
++				}
+ 			},
+ 			reportError: (reason: string) => {
+ 				download.state = 'failed';
+diff --git a/README.md b/README.md
+index 1234567..abcdefg 100644
+--- a/README.md
++++ b/README.md
+@@ -50,6 +50,28 @@ pnpm install
+ pnpm dev
+ ```
+ 
++### Building for Terbium
++
++DayDream X can be built as a Terbium application (TAPP) with advanced OS integration:
++
++```bash
++# Build TAPP package
++pnpm run build:tapp
++```
++
++This creates `dist-tapp/daydream.TAPP.zip` with:
++
++- **Advanced Windowing**: Custom titlebar with frameless dragging, double-click maximize, snap support
++- **Media Island Integration**: Automatic media detection and rich controls for YouTube, Spotify, SoundCloud, etc.
++- **Native Notifications**: Browser notifications appear as system toasts
++- **Downloads via VFS**: Save files directly to Terbium's virtual filesystem
++- **App Island Menu**: Quick access to bookmarks, history, settings from the menu bar
++- **Shared Wisp Transport**: Uses Terbium's proxy infrastructure automatically
++
++Install in Terbium:
++1. Copy `daydream.TAPP.zip` to `/apps/user/{username}/`
++2. Extract and add to launcher via Settings → Apps
++
+ ## 🎨 Features
+ 
+ - **Modern UI**: Clean, responsive interface with dark mode support

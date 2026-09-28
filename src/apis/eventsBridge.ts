@@ -261,7 +261,9 @@ export function installEventsBridge(controller: any): void {
  *   forwarded to the handler as the `req` argument.
  * - **Response** (host→page, via `event.source.postMessage(..., '*')`):
  *   - success: `{ [resMarker]: { requestId, ok: true, result } }`
- *   - failure: `{ [resMarker]: { requestId, ok: false, error: string } }`
+ *   - failure: `{ [resMarker]: { requestId, ok: false, error: string | { code, message } } }`
+ *     Ordinary errors are strings; errors with string `code` and `message`
+ *     fields preserve that structured shape.
  *
  * Security
  * --------
@@ -428,8 +430,22 @@ export class RequestResponseChannel {
 			const result = await handler(envelope, event.source);
 			this.reply(event.source, { requestId, ok: true, result });
 		} catch (err) {
-			const message =
-				err instanceof Error ? err.message : String(err ?? 'unknown_error');
+			if (
+				err &&
+				typeof err === 'object' &&
+				'code' in err &&
+				'message' in err &&
+				typeof err.code === 'string' &&
+				typeof err.message === 'string'
+			) {
+				this.reply(event.source, {
+					requestId,
+					ok: false,
+					error: { code: err.code, message: err.message }
+				});
+				return;
+			}
+			const message = err instanceof Error ? err.message : String(err ?? 'unknown_error');
 			this.reply(event.source, { requestId, ok: false, error: message });
 		}
 	}

@@ -4,6 +4,7 @@ import { SearchEngineRegistry } from '@apis/searchEngines';
 import { universalTheme } from '@utils/global/universalTheme';
 import { checkNightPlusStatus } from '@apis/nightplus';
 import { basePath, resolvePath } from '@utils/basepath';
+import { buildConfig } from '@core/shared/build-runtime';
 import type { BootReadiness } from './readiness';
 
 export interface BackgroundResult {
@@ -20,7 +21,14 @@ export async function backgroundInit(
 
 	const [SW, , profilesAPI] = await Promise.all([
 		navigator.serviceWorker
-			.register(resolvePath('sw.js'), { scope: basePath })
+			// MUST match the filename used by proxy.registerSW / index.ts
+			// swConfig (both use `buildConfig().cover.worker`). Registering a
+			// different script at the same scope makes the first redundant and
+			// the scramjet Controller ends up posting `$controller$init` to a
+			// dead worker — proxied navigations then 404 (never routed).
+			.register(resolvePath(buildConfig().cover.worker), {
+				scope: basePath,
+			})
 			.then(async (reg) => {
 				await navigator.serviceWorker.ready;
 				return reg;

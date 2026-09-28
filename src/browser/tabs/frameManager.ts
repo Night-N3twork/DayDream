@@ -90,6 +90,8 @@ export class TabFrameManager {
 		};
 
 		this.managedByTabId.set(tabId, managed);
+		const mediaMonitor = (globalThis as any).__ddxMediaMonitor;
+		mediaMonitor?.monitorFrame?.(iframe);
 
 		return {
 			iframe,
@@ -121,6 +123,7 @@ export class TabFrameManager {
 	cleanupFrame = (tabId: string): void => {
 		const managed = this.managedByTabId.get(tabId);
 		if (!managed) return;
+		(globalThis as any).__ddxMediaMonitor?.cleanupFrame?.(managed.iframe);
 
 		try {
 			managed.iframe.src = 'about:blank';

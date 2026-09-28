@@ -1,5 +1,6 @@
 import type { OmniboxRow, OmniboxSection } from '../types';
 import type { SearchEngineRegistry } from '@apis/searchEngines';
+import { expandSearchTemplate } from '@apis/searchEngines';
 import type { Tabs } from '@browser/tabs';
 import type { HistoryManager, HistorySearchResult } from '@apis/history';
 import type { BookmarkManager } from '@apis/bookmarks';
@@ -56,7 +57,7 @@ export async function renderDefaultMode(deps: DefaultModeDeps): Promise<DefaultM
 			id: 'primary-search',
 			icon: 'search',
 			label: `Search ${defaultEngine.name} for: ${query}`,
-			onSelect: () => deps.onNavigate(defaultEngine.urlTemplate.replace('%s', encodeURIComponent(query))),
+			onSelect: () => deps.onNavigate(expandSearchTemplate(defaultEngine.urlTemplate, query)),
 		};
 
 	const tabsResults = safeCall(() => deps.tabs.searchOpen(query)) ?? [];
@@ -147,7 +148,7 @@ export async function renderDefaultMode(deps: DefaultModeDeps): Promise<DefaultM
 			id: `sug-${i}`,
 			icon: 'search',
 			label: s,
-			onSelect: () => deps.onNavigate(defaultEngine.urlTemplate.replace('%s', encodeURIComponent(s))),
+			onSelect: () => deps.onNavigate(expandSearchTemplate(defaultEngine.urlTemplate, s)),
 		}));
 		sections.push({
 			id: 'search',
