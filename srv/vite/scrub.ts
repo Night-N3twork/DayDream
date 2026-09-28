@@ -4,6 +4,7 @@ import type { BuildConfig } from './build-config';
 import {
   ARTIFACT_WORDS,
   CASE_SENSITIVE_ARTIFACT_WORDS,
+  PROTECTED_LITERALS,
   createArtifactVocabulary,
 } from './build-config';
 
@@ -140,9 +141,23 @@ export const scrubJavaScript = (
       return `${quote}${prefix}${marker}${quote}`;
     },
   );
-  const bytes = Buffer.from(protectedSource);
+  // Protect load-bearing external literals (e.g. `nightwisp.me`) so the byte
+  // scrub leaves them intact. Swap each for a word-free marker before the
+  // scrub and restore verbatim afterwards.
+  const protectedLiterals: { marker: string; value: string }[] = [];
+  let literalGuardedSource = protectedSource;
+  for (const literal of PROTECTED_LITERALS) {
+    if (!literalGuardedSource.includes(literal)) continue;
+    const marker = `__PROTECTED_LITERAL_${protectedLiterals.length}__`;
+    protectedLiterals.push({ marker, value: literal });
+    literalGuardedSource = literalGuardedSource.split(literal).join(marker);
+  }
+  const bytes = Buffer.from(literalGuardedSource);
   scrubBuffer(bytes, vocabulary);
   let output = bytes.toString('utf8');
+  for (const { marker, value } of protectedLiterals) {
+    output = output.split(marker).join(value);
+  }
   for (const item of embedded) {
     let payload = item.payload;
     for (const word of forbiddenWords) {
@@ -387,10 +402,17 @@ export const scrubPlugin = (config: BuildConfig, seed: string): Plugin => {
       const { readFile } = await import('node:fs/promises');
       for (const file of files) {
         const bytes = await readFile(file);
+        // Strip protected literals (e.g. `nightwisp.me`) before scanning so
+        // their intentional artifact-word substrings don't trip the gate.
+        let haystack = bytes;
+        for (const literal of PROTECTED_LITERALS) {
+          const text = haystack.toString('binary').split(literal).join('');
+          haystack = Buffer.from(text, 'binary');
+        }
         for (const word of ARTIFACT_WORDS) {
           const caseSensitive = CASE_SENSITIVE_ARTIFACT_WORDS.has(word);
           const needle = Buffer.from(word, 'ascii');
-          if (includesAscii(bytes, needle, caseSensitive)) {
+          if (includesAscii(haystack, needle, caseSensitive)) {
             throw new Error(
               `[ddx-vocabulary-scrub] forbidden word "${word}" remains in ${file}`,
             );

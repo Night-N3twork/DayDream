@@ -1,7 +1,7 @@
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import type { Plugin, ResolvedConfig } from 'vite';
-import { ARTIFACT_WORDS, CASE_SENSITIVE_ARTIFACT_WORDS, type BuildConfig } from './build-config';
+import { ARTIFACT_WORDS, CASE_SENSITIVE_ARTIFACT_WORDS, PROTECTED_LITERALS, type BuildConfig } from './build-config';
 
 async function walk(dir: string): Promise<string[]> {
   const out: string[] = [];
@@ -42,12 +42,19 @@ export function assertArtifactsPlugin(config: BuildConfig, seed: string): Plugin
         const rel = relative(outDir, path);
         if (rel.startsWith('.build-') || rel.startsWith('runtime/.builds')) continue;
         const source = await readFile(path);
+        // Strip protected literals (e.g. `nightwisp.me`) so their intentional
+        // artifact-word substrings don't trip the content gate.
+        let scanSource = source;
+        for (const literal of PROTECTED_LITERALS) {
+          const text = scanSource.toString('binary').split(literal).join('');
+          scanSource = Buffer.from(text, 'binary');
+        }
         for (const word of ARTIFACT_WORDS) {
           const caseSensitive = CASE_SENSITIVE_ARTIFACT_WORDS.has(word);
           if (!caseSensitive && rel.toLowerCase().includes(word)) {
             problems.push(`filename: ${rel} contains ${word}`);
           }
-          if (containsAscii(source, word, caseSensitive)) {
+          if (containsAscii(scanSource, word, caseSensitive)) {
             problems.push(`content:  ${rel} contains ${word}`);
           }
         }

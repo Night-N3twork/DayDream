@@ -2,7 +2,7 @@ import type { Plugin, ResolvedConfig } from "vite";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { resolve } from "path";
 
-export function svgWrapperPlugin(): Plugin {
+export function svgWrapperPlugin(subdir = ""): Plugin {
   let config: ResolvedConfig;
 
   return {
@@ -15,7 +15,10 @@ export function svgWrapperPlugin(): Plugin {
     },
 
     closeBundle() {
-      const outDir = resolve(config.root, config.build.outDir);
+      // `subdir` lets the svg be generated next to the app shell (e.g. "app"),
+      // so its relative ./assets refs resolve under /app/ and it boots the app
+      // directly when opened as /app/index.svg — no redirect needed.
+      const outDir = resolve(config.root, config.build.outDir, subdir);
       const indexPath = resolve(outDir, "index.html");
       // closeBundle still fires when an upstream build error prevented the
       // HTML from being emitted. Silently skip in that case so the real
@@ -25,9 +28,71 @@ export function svgWrapperPlugin(): Plugin {
         const html = readFileSync(indexPath, "utf-8");
         const svg = convertHtmlToSvg(html);
         writeFileSync(resolve(outDir, "index.svg"), svg, "utf-8");
-        console.log("\x1b[36m  Generated index.svg from index.html\x1b[0m");
+        console.log(
+          `\x1b[36m  Generated ${subdir ? subdir + "/" : ""}index.svg from index.html\x1b[0m`,
+        );
       } catch (err) {
         console.error("\x1b[31m  Failed to generate index.svg:\x1b[0m", err);
+      }
+    },
+  };
+}
+
+/**
+ * Build a tiny SVG document that immediately redirects to `target` when opened
+ * as a top-level page. Used to emit a root `/index.svg` that forwards to the
+ * real bootloader at `/app/index.svg`. The target is relative so it resolves
+ * correctly regardless of the mount point (from `/index.svg`, `app/index.svg`
+ * resolves to `/app/index.svg`). A `<noscript>`-style anchor fallback is not
+ * possible in bare SVG, so we also set a `<a xlink:href>` cover for the
+ * scriptless case.
+ */
+export function buildRedirectSvg(target: string): string {
+  const safe = target.replace(/"/g, "&quot;");
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" height="100%" style="position: fixed; top: 0; left: 0;">
+  <script type="text/javascript"><![CDATA[
+    window.location.replace("${target}");
+  ]]></script>
+  <a xlink:href="${safe}">
+    <text x="12" y="24" font-family="sans-serif" font-size="14">Redirecting…</text>
+  </a>
+</svg>`;
+}
+
+/**
+ * Emit a redirect SVG at `<outDir>/<fileName>` that forwards to `target`.
+ * Registered after the app-shell svg so a root `/index.svg` forwards to the
+ * co-located `/app/index.svg` bootloader.
+ */
+export function svgRedirectPlugin(
+  fileName: string,
+  target: string,
+): Plugin {
+  let config: ResolvedConfig;
+  return {
+    name: "ddx-svg-redirect",
+    apply: "build",
+    enforce: "post",
+    configResolved(c) {
+      config = c;
+    },
+    closeBundle() {
+      const outDir = resolve(config.root, config.build.outDir);
+      try {
+        writeFileSync(
+          resolve(outDir, fileName),
+          buildRedirectSvg(target),
+          "utf-8",
+        );
+        console.log(
+          `\x1b[36m  Generated ${fileName} redirect -> ${target}\x1b[0m`,
+        );
+      } catch (err) {
+        console.error(
+          `\x1b[31m  Failed to generate ${fileName} redirect:\x1b[0m`,
+          err,
+        );
       }
     },
   };
@@ -254,6 +319,12 @@ function buildScriptSection(scripts: ScriptEntry[]): string {
       "  document.createElement = function(tag, opts) {",
       "    return document.createElementNS(ns, tag, opts);",
       "  };",
+      "  // SVG is an XML document: document.write() throws InvalidStateError.",
+      "  // The app's base-shim uses it only to inject a <base>; the app's assets",
+      "  // resolve relative to this .svg's own URL and self.__ddxBase comes from",
+      "  // the shim's return value, so a safe no-op is sufficient and prevents",
+      "  // the bootstrap from aborting.",
+      "  document.write = document.writeln = function () {};",
       "})();",
     ].join("\n"),
   );

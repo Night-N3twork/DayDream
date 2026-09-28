@@ -64,4 +64,14 @@ describe('scrubJavaScript', () => {
     // the source text doesn't have literal 'scramjet'.
     expect(out).not.toContain('scramjet');
   });
+  it('preserves protected external literals (nightwisp.me) while still scrubbing bare wisp', () => {
+    const src =
+      'const host = "nightwisp.me"; const t = "wisp transport";';
+    const out = scrubJavaScript(src, alignedVocab);
+    // The load-bearing external host must survive verbatim...
+    expect(out).toContain('nightwisp.me');
+    // ...but an unrelated bare `wisp` token is still scrubbed.
+    expect(out).toContain('CCCC transport');
+    expect(out).not.toMatch(/"wisp transport"/);
+  });
 });

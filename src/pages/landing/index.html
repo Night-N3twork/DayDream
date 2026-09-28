@@ -6,6 +6,8 @@
   <title>{{PRODUCT}}</title>
   <meta name="description" content="{{DESCRIPTION}}" />
   <meta name="robots" content="index, follow" />
+  <!-- Auto-redirect to the app after 5 seconds (no-JS fallback). -->
+  <meta http-equiv="refresh" content="5; url=/app/index.html" />
   <link rel="icon" type="image/x-icon" href="/res/logo.png" />
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-BMERY7ZH6Z"></script>
   <script>
@@ -32,5 +34,17 @@
     <div class="status-ok">All systems operational</div>
     <p style="margin: 0.5rem 0 0;">Service is available.</p>
   </div>
+  <script>
+    // Redirect to the app after 5 seconds. Written as a plain inline script (no
+    // DOM lookups) so it runs identically in a normal HTML page AND inside the
+    // generated index.svg bootloader (whose script extractor re-runs inline
+    // scripts). The <meta refresh> above is the no-JS fallback for HTML; SVG
+    // relies on this. location.replace keeps the landing out of history.
+    (function () {
+      setTimeout(function () {
+        location.replace("/app/index.html");
+      }, 5000);
+    })();
+  </script>
 </body>
 </html>

@@ -30,7 +30,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { obfuscationConfig } from "./srv/vite/obfusc-config";
 import { minifyConfig } from "./srv/vite/minify-config";
 import { allowedHosts } from "./srv/vite/hosts";
-import { svgWrapperPlugin } from "./srv/vite/svg";
+import { svgWrapperPlugin, svgRedirectPlugin } from "./srv/vite/svg";
 import { relocatePagesPlugin } from "./srv/vite/relocate-pages";
 import { terbiumTappPlugin } from "./srv/vite/terbium-tapp";
 import { apocalypseRemotePlugin } from "./srv/vite/apoc";
@@ -92,7 +92,6 @@ export default defineConfig({
     //vitePluginBundleObfuscator(obfuscationConfig as any),
     relocatePagesPlugin(),
     ...apocalypsePlugins,
-    svgWrapperPlugin(),
     terbiumTappPlugin(),
     handoffPostCopyPlugin(__ddxBuildConfig),
     devWispPlugin(__ddxBuildConfig),
@@ -200,6 +199,13 @@ export default defineConfig({
     // rippable). Runs after scrub/assert/strip-console have processed the files
     // at their original root locations.
     coLocateAppPlugin(__ddxBuildConfig),
+    // Generate the SVG bootloader NEXT TO the co-located app shell (after
+    // colocate), so /app/index.svg's relative ./assets refs resolve under
+    // /app/assets and it boots the app directly — no redirect needed.
+    svgWrapperPlugin("app"),
+    // Emit a root /index.svg that redirects to the real bootloader at
+    // /app/index.svg. Relative target so it resolves under any mount point.
+    svgRedirectPlugin("index.svg", "app/index.svg"),
   ],
   appType: "mpa",
   optimizeDeps: {

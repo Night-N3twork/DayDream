@@ -90,6 +90,18 @@ export const CASE_SENSITIVE_ARTIFACT_WORDS: ReadonlySet<string> = new Set([
   "proxy",
 ]);
 
+// Literal strings that must survive the byte scrub INTACT even though they
+// contain an artifact word. These are external, functional endpoints whose
+// exact spelling is load-bearing at runtime — scrubbing them (e.g.
+// `nightwisp.me` → `nightjwi3.me`) would point the client at a non-existent
+// host. The scrubber swaps each occurrence for a word-free marker before the
+// byte pass and restores it verbatim afterwards. Keep this list minimal: every
+// entry is a deliberate, static "wisp"-style tell left in the bundle bytes.
+export const PROTECTED_LITERALS: readonly string[] = [
+  // Generatable fallback WISP host used by NetworkAPI.genBaseServerURL().
+  "nightwisp.me",
+];
+
 // ---------------------------------------------------------------------------
 // KDF + token helpers
 // ---------------------------------------------------------------------------
