@@ -4,6 +4,7 @@ vi.mock('virtual:ddx-build-config', () => ({
 	default: {
 		buildId: 'test-build',
 		workspace: '/app/',
+		ads: { enabled: true },
 		cover: {
 			provider: 'aws',
 			route: 'assets',
@@ -24,12 +25,17 @@ vi.mock('virtual:ddx-build-config', () => ({
 	},
 }));
 
-import { buildConfig } from './build-runtime';
+import { buildConfig, coverIdentity } from './build-runtime';
 
 describe('buildConfig()', () => {
 	it('returns the injected config as a frozen object', () => {
 		const cfg = buildConfig();
 		expect(cfg.buildId).toBe('test-build');
 		expect(Object.isFrozen(cfg)).toBe(true);
+	});
+
+	it('exposes Daydream as the stable user-facing product identity', () => {
+		expect(coverIdentity().product).toBe('Daydream');
+		expect(coverIdentity().title).toBe('Daydream');
 	});
 });

@@ -317,7 +317,10 @@ function generateRandomNightWisp(): string {
 }
 
 function isGeneratedWispUrl(url: string): boolean {
-  return /\.nightwisp\.me\.cdn\.cloudflare\.net\/wisp\//.test(url);
+  // Match on the protected "nightwisp" token (survives the byte-scrub). A
+  // regex embedding the escaped `\/wisp\/` would have its `wisp` scrubbed and
+  // never match the (protected) real URL.
+  return url.includes("nightwisp");
 }
 
 function renderNetwork(container: HTMLElement) {
@@ -438,7 +441,7 @@ function renderNetwork(container: HTMLElement) {
       const hint = document.createElement("div");
       hint.className = "row-sub";
       hint.style.padding = "0 16px 8px";
-      hint.textContent = "\u24D8 Remote proxy only works when transport is libcurl.";
+      hint.textContent = "\u24D8 Remote proxy only works when transport is Libcurl.";
       stack.appendChild(hint);
 
       body.appendChild(stack);

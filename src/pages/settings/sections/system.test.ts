@@ -19,7 +19,7 @@ afterEach(() => {
 });
 
 describe("System settings", () => {
-  it("keeps the legacy Anti-Tab Close control bound to disableTabClose", async () => {
+  it("shows the migrated Anti-Tab Close control bound to disableTabClose", async () => {
     settings.getItem.mockResolvedValue("true");
     const container = document.createElement("div");
     document.body.appendChild(container);
@@ -37,5 +37,15 @@ describe("System settings", () => {
     await Promise.resolve();
 
     expect(settings.setItem).toHaveBeenCalledWith("disableTabClose", "false");
+  });
+
+  it("removes the duplicate Anti-Tab Close control from legacy Settings", async () => {
+    const { readFile } = await import("node:fs/promises");
+    const html = await readFile("src/pages/settingsOld/index.html", "utf8");
+    const script = await readFile("src/pages/settingsOld/index.tsx", "utf8");
+
+    expect(html).not.toContain("disableTabCloseSwitch");
+    expect(html).not.toContain("Anti-Tab Close");
+    expect(script).not.toContain("disableTabCloseSwitch");
   });
 });

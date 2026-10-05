@@ -1,45 +1,19 @@
-import { buildConfig } from "@core/shared/build-runtime";
-
-const cfg = buildConfig();
-const beaconUrl = `${cfg.workspace}${cfg.cover.route}/${cfg.routes.assets}/${cfg.rpc.token}/beacon`;
-
-const CLIENT_ID_KEY = "__ddx_client_id";
-
-function getClientId(): string {
-  try {
-    let id = localStorage.getItem(CLIENT_ID_KEY);
-    if (!id) {
-      id = crypto.randomUUID();
-      localStorage.setItem(CLIENT_ID_KEY, id);
-    }
-    return id;
-  } catch {
-    return "anonymous";
-  }
-}
-
 export function trackEvent(
   name: string,
   params: Record<string, unknown> = {},
 ): void {
   try {
-    const payload = JSON.stringify({
-      client_id: getClientId(),
-      events: [{ name, params }],
-    });
-    if (typeof navigator.sendBeacon === "function") {
-      const blob = new Blob([payload], { type: "application/json" });
-      navigator.sendBeacon(beaconUrl, blob);
-    } else {
-      void fetch(beaconUrl, {
-        method: "POST",
-        body: payload,
-        headers: { "Content-Type": "application/json" },
-        keepalive: true,
-      }).catch(() => {
-        /* swallow */
-      });
-    }
+    type TagWindow = Window & {
+      gtag?: (command: string, name: string, params: Record<string, unknown>) => void;
+    };
+    // Internal settings/newtab pages share the shell's browser session. A
+    // cross-origin parent is inaccessible and safely falls through the catch.
+    const gtag = (window as TagWindow).gtag ?? (window.parent as TagWindow).gtag;
+    // Internal events use colons/hyphens; GA event names allow only letters,
+    // numbers and underscores, start with a letter, and are at most 40 chars.
+    let eventName = name.replace(/[^a-zA-Z0-9_]/g, "_");
+    if (!/^[a-zA-Z]/.test(eventName)) eventName = `app_${eventName}`;
+    gtag?.("event", eventName.slice(0, 40), params);
   } catch {
     /* telemetry must never break app */
   }

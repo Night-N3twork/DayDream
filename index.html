@@ -42,19 +42,55 @@
 		/>
 		<meta property="og:image" content="./res/logo.png" />
 
-		<script type="module">
-			window.addEventListener('load', () => {
-				requestIdleCallback(() => {
-					const s = Object.assign(document.createElement('script'), {
-						async: true,
-						src: 'https://www.googletagmanager.com/gtag/js?id=G-BMERY7ZH6Z'
-					});
-					document.head.appendChild(s);
-					window.dataLayer = window.dataLayer || [];
-					function gtag() { dataLayer.push(arguments); }
-					gtag('js', new Date()); gtag('config', 'G-BMERY7ZH6Z');
-				}, { timeout: 5000 });
-			});
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			window.gtag = function () { window.dataLayer.push(arguments); };
+			gtag('js', new Date());
+			gtag('config', 'G-BMERY7ZH6Z');
+			(function () {
+				var tag = document.createElement('script');
+				tag.async = true;
+				// Package-relative so static subpath mounts stay in-package.
+				tag.src = new URL('api/tag.js', document.baseURI || location.href).toString();
+				function executeInlineFallback() {
+					try {
+						var baked = document.getElementById('ddx-gtag-inline');
+						if (!baked || !baked.textContent) return;
+						var raw = baked.textContent.replace(/\s+/g, '');
+						var bin = atob(raw);
+						var bytes = new Uint8Array(bin.length);
+						for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+						var inline = document.createElement('script');
+						inline.textContent = new TextDecoder().decode(bytes);
+						document.head.appendChild(inline);
+					} catch (e) {}
+					var el = document.getElementById('ddx-gtag-inline');
+					if (el) el.remove();
+				}
+				// Static hosts have no API server. Only the script falls back;
+				// collection always uses Google's normal browser endpoints.
+				tag.onerror = function () {
+					tag.onerror = null;
+					var direct = document.createElement('script');
+					direct.async = true;
+					direct.src = 'https://www.googletagmanager.com/gtag/js?id=G-BMERY7ZH6Z';
+					direct.onerror = function () {
+						fetch(new URL('tag-fallback.js', location.href).toString())
+							.then(function (response) {
+								if (!response.ok) throw new Error('fallback unavailable');
+								return response.text();
+							})
+							.then(function (code) {
+								var inline = document.createElement('script');
+								inline.textContent = code;
+								document.head.appendChild(inline);
+							})
+							.catch(function () { executeInlineFallback(); });
+					};
+					document.head.appendChild(direct);
+				};
+				document.head.appendChild(tag);
+			})();
 		</script>
 	</head>
 

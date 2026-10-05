@@ -33,10 +33,6 @@ class NetworkAPI {
   }
 
   genBaseServerURL(): string {
-    const domainList = ["nightwisp.me"];
-    const cloudflareDomains = domainList.map(
-      (domain: string) => `${domain}.cdn.cloudflare.net/`,
-    );
     const randomSubdomain = Array.from(
       crypto.getRandomValues(new Uint8Array(16)),
     )
@@ -44,7 +40,9 @@ class NetworkAPI {
       .join("")
       .substring(0, 32);
 
-    return `${randomSubdomain}.${cloudflareDomains[Math.floor(Math.random() * cloudflareDomains.length)]}`;
+    // Canonical generatable endpoint. `wisp` is not scrubbed, so the stable
+    // `/wisp/` path the shared CDN serves ships verbatim.
+    return `${randomSubdomain}.nightwisp.me.cdn.cloudflare.net/wisp/`;
   }
 
   async wsPing(

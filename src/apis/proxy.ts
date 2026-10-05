@@ -8,6 +8,7 @@ import type LibcurlClient from '@mercuryworkshop/libcurl-transport';
 import type PulsarClient from '@pkgs/pulsar';
 import { installEventsBridge } from '@apis/eventsBridge';
 import { installScriptInjector } from '@apis/scriptInjection';
+import { installProxyContext } from '@apis/proxyContext';
 import { installDevToolsHook } from '@apis/devtools';
 import {
 	CachePluginManager,
@@ -240,6 +241,7 @@ class Proxy implements ProxyInterface {
 			installEventsBridge(this.controller);
 
 			installScriptInjector(this.controller);
+			installProxyContext(this.controller);
 
 			installDevToolsHook(this.controller, () => (window as any).devtools);
 
@@ -706,12 +708,10 @@ class Proxy implements ProxyInterface {
 	 * returning. The generated host is an external TLS-terminated CDN, so the
 	 * URL is always `wss://` regardless of the page's own protocol.
 	 *
-	 * IMPORTANT: we use genBaseServerURL()'s value verbatim (it already ends in
-	 * the stable root `/`). We deliberately do NOT append a `/wisp/` path: the
-	 * shared fallback server serves the connection at that base, and — because
-	 * the byte-scrub rewrites the `wisp` artifact word to a per-build token —
-	 * an appended `wisp/` literal would ship as `jWi3/`, hitting a 404 path on
-	 * the (unscrubbed, shared) CDN. Returns `null` if no candidate responds.
+	 * genBaseServerURL() returns the canonical
+	 * `<sub>.nightwisp.me.cdn.cloudflare.net/wisp/` — the stable `/wisp/` path
+	 * the shared CDN serves (ships verbatim since `wisp` is no longer scrubbed).
+	 * Returns `null` if no candidate responds.
 	 */
 	async autogenerateWisp(attempts = 3): Promise<string | null> {
 		return autogenerateWispUrl({

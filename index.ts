@@ -139,7 +139,7 @@ await server.register(fastifyCompress, {
 
 await server.register(fastifyHelmet, {
   xPoweredBy: false,
-  crossOriginEmbedderPolicy: true,
+  crossOriginEmbedderPolicy: { policy: "credentialless" },
   crossOriginOpenerPolicy: true,
   contentSecurityPolicy: false,
 });

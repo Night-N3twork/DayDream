@@ -28,7 +28,7 @@ dist-bootstrap/
 graphify-out/
 uBlock0.chromium/
 Starlight/
-lunar-v3/
+lunar-v2/
 lh-reports/
 Nova/
 codec/
@@ -39,3 +39,4 @@ test-results/
 shoestring/
 Nebula/shoestring-nebula/
 shoestring-nebula/
+shoestring-*/

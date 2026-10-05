@@ -271,7 +271,7 @@ async function initializeWispSelect() {
 
   const isGeneratedWisp =
     typeof savedWisp === "string" &&
-    savedWisp.includes(".nightwisp.me.cdn.cloudflare.net/wisp/");
+    savedWisp.includes("nightwisp");
   const isCustomWisp =
     savedWisp !== "auto" &&
     !isGeneratedWisp &&
@@ -462,21 +462,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   await initSwitch("autoCloakSwitch", "autoCloak", () => {
     eventsAPI.emit("cloaking:auto-toggle", null);
   });
-
-  await initSwitch(
-    "disableTabCloseSwitch",
-    "disableTabClose",
-    async () => {
-      const isEnabled = await settingsAPI.getItem("disableTabClose");
-      if (isEnabled === "true") {
-        window.addEventListener("beforeunload", (e) => {
-          e.preventDefault();
-          e.returnValue = "";
-        });
-      }
-    },
-    true,
-  );
 
   await initializeTabCloakSystem();
 

@@ -3,6 +3,8 @@ import { Items } from "@browser/items";
 import { Nightmare as UI } from "@pkgs/Nightmare";
 import { openExtensionPopup } from "@browser/extensions/popupHost";
 import { SettingsAPI } from "@apis/settings";
+import { getCachedI18n, prepareI18nFor } from "@core/helium/host/i18n";
+import { lookupMessage } from "@core/helium/host/i18n/lookup";
 
 interface ExtensionEntry {
   id: string;
@@ -79,6 +81,7 @@ export class MenuManager implements MenuInterface {
   private extEventsBound = false;
   private menusBound = false;
   private extrasCloseTimeout: ReturnType<typeof setTimeout> | null = null;
+  private extensionsSidebarButton: HTMLButtonElement | null = null;
 
   constructor(items: Items, ui: UI, _nightmarePlugins: unknown = null) {
     this.items = items;
@@ -179,6 +182,7 @@ export class MenuManager implements MenuInterface {
    *   └─────────────────────────────────┘
    */
   extensionsMenu(button: HTMLButtonElement): void {
+    this.extensionsSidebarButton = button;
     const extMgr = (window as { extensions?: ExtensionManagerLike }).extensions;
     if (extMgr?.on && !this.extEventsBound) {
       const rerender = () => {
@@ -344,9 +348,13 @@ export class MenuManager implements MenuInterface {
     const extMgr = (window as { extensions?: ExtensionManagerLike }).extensions;
     if (!extMgr) return [];
     if (extMgr.listAllWithManifest) {
-      try { return await extMgr.listAllWithManifest(); } catch { /* fall back */ }
+      try {
+        const entries = await extMgr.listAllWithManifest();
+        await Promise.all(entries.map(resolveLocalizedManifestName));
+        return entries;
+      } catch { /* fall back */ }
     }
-    return extMgr.getRunning().map((s) => ({
+    const entries = extMgr.getRunning().map((s) => ({
       id: s.id,
       name: (s.ctx.manifest.name as string | undefined) ?? s.id,
       version: (s.ctx.manifest.version as string | undefined) ?? "",
@@ -355,6 +363,8 @@ export class MenuManager implements MenuInterface {
       origin: s.ctx.origin,
       manifest: s.ctx.manifest,
     }));
+    await Promise.all(entries.map(resolveLocalizedManifestName));
+    return entries;
   }
 
   private buildExtensionRow(
@@ -672,6 +682,9 @@ export class MenuManager implements MenuInterface {
 
     if (popup) {
       try {
+        const sidebarAnchor = this.extensionsSidebarButton?.isConnected
+          ? this.extensionsSidebarButton
+          : null;
         openExtensionPopup({
           extId: ext.id,
           ctx: {
@@ -680,7 +693,8 @@ export class MenuManager implements MenuInterface {
             manifest: ext.manifest,
           } as unknown as import('@core/helium').ExtensionContext,
           popupPath: popup,
-          anchorEl: rowEl,
+          anchorEl: sidebarAnchor ?? rowEl,
+          ...(sidebarAnchor ? { placement: 'right-start' as const, highlightAnchor: true } : {}),
         });
       } catch (err) {
         console.warn("[menuManager] openExtensionPopup failed:", err);
@@ -697,6 +711,26 @@ export class MenuManager implements MenuInterface {
       }
     }
     sidemenu.closeMenu();
+  }
+}
+
+async function resolveLocalizedManifestName(entry: ExtensionEntry): Promise<void> {
+  const name = typeof entry.manifest.name === 'string' ? entry.manifest.name : entry.name;
+  const match = /^__MSG_([A-Za-z0-9_@]+)__$/i.exec(name);
+  if (!match) return;
+
+  try {
+    const defaultLocale = typeof entry.manifest.default_locale === 'string'
+      ? entry.manifest.default_locale
+      : undefined;
+    const prepared = getCachedI18n(entry.id) ?? await prepareI18nFor(entry.id, defaultLocale);
+    const message = lookupMessage(prepared.messages, match[1]!);
+    if (!message?.message) return;
+
+    entry.name = message.message;
+    entry.manifest = { ...entry.manifest, name: message.message };
+  } catch (err) {
+    console.warn(`[menuManager] failed to localize extension name for ${entry.id}:`, err);
   }
 }
 

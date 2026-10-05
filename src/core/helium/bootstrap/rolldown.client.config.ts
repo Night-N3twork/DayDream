@@ -13,12 +13,14 @@
 import { defineConfig } from 'rolldown';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { rolldownBuildConfigPlugin } from '../../../../srv/vite/rolldown-build-config';
 
 const configDir = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   input: resolve(configDir, 'client.ts'),
   platform: 'browser',
+  plugins: [rolldownBuildConfigPlugin()],
   output: {
     file: resolve(configDir, 'dist', 'helium-bootstrap.js'),
     format: 'iife',

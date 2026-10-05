@@ -65,9 +65,25 @@ export function fontObfuscationPlugin() {
         },
       ];
 
-      function shuffle(arr: any[]) {
+      // Deterministic PRNG (mulberry32). The obfuscation mapping ships in
+      // `*-mappings.json` regardless, so per-build randomization bought no
+      // secrecy — it only broke caching: the font filename is stable but a
+      // Math.random() shuffle changed the glyph↔codepoint assignment every
+      // build, so a cached font rendered new-build codepoints as raw CJK.
+      // A fixed seed makes every build byte-identical → caches stay valid.
+      function makeRng(seed: number) {
+        let a = seed >>> 0;
+        return () => {
+          a = (a + 0x6d2b79f5) | 0;
+          let t = Math.imul(a ^ (a >>> 15), 1 | a);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      function shuffle(arr: any[], rng: () => number = Math.random) {
         for (let i = arr.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
+          const j = Math.floor(rng() * (i + 1));
           [arr[i], arr[j]] = [arr[j], arr[i]];
         }
         return arr;
@@ -95,7 +111,7 @@ export function fontObfuscationPlugin() {
         }
 
         const unique = [...new Set(chars)];
-        shuffle(unique);
+        shuffle(unique, makeRng(0x9e3779b1));
 
         console.log(`Got ${unique.length} CJK characters for obfuscation`);
 
@@ -121,6 +137,7 @@ export function fontObfuscationPlugin() {
           "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz .,!?;:'\"1234567890-_()[]{}/@#$%&*+=<>|\\~`".split(
             "",
           ),
+          makeRng(0x85ebca6b),
         );
         const inputChars = getChineseChars(visibleChars.length);
 
@@ -190,7 +207,17 @@ export function fontObfuscationPlugin() {
           ascender: baseFont.ascender || 800,
           descender: baseFont.descender || -200,
           glyphs: glyphs,
-        });
+          // Pin the head-table timestamp so the font is byte-identical across
+          // builds (opentype.js defaults to Date.now()); with the seeded
+          // shuffle this makes the obf assets deterministic → cache-safe.
+          createdTimestamp: 0,
+        } as any);
+        try {
+          if (font.tables && font.tables.head) {
+            (font.tables.head as any).created = 0;
+            (font.tables.head as any).modified = 0;
+          }
+        } catch {}
 
         const ttfBuffer = Buffer.from(font.toArrayBuffer());
         const woff2Buffer = ttf2woff2(ttfBuffer);

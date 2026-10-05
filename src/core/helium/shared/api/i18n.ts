@@ -1,4 +1,5 @@
 import type { ExtensionContext } from '../../extfs/types';
+import { lookupMessage } from '../../host/i18n/lookup';
 
 /**
  * `chrome.i18n` — provides extension-internal localized strings.
@@ -90,7 +91,7 @@ export class ChromeI18n {
       }
     }
 
-    const entry = this.messages[key];
+    const entry = lookupMessage(this.messages, key);
     if (!entry) return '';
 
     let msg = entry.message;

@@ -4,6 +4,7 @@ import {
   injectBootstrapIntoBackgroundPage,
 } from '../bootstrap';
 import { getCachedI18n, prepareI18nFor } from '../host/i18n';
+import { substituteMessagePlaceholders } from '../host/i18n/lookup';
 import { readExtensionFile } from './install';
 import { contentTypeFromPath } from './mime';
 import { normalizeExtPath } from './path';
@@ -70,26 +71,6 @@ function isCss(rel: string): boolean {
 }
 function isJson(rel: string): boolean {
   return /\.json$/i.test(rel);
-}
-
-/**
- * Apply Chrome's `__MSG_<key>__` substitution to a string.
- *
- * Behaviour matches Chrome:
- *   - Unknown keys are left as-is (so they're visible during development).
- *   - Keys can contain letters, digits, underscores, and `@`.
- *   - Placeholders / $1-$9 substitution don't apply here — those only
- *     apply to runtime `chrome.i18n.getMessage(key, subs)` calls.
- *     `__MSG_*__` in static files is always the bare message text.
- */
-function substituteMsgPlaceholders(
-  body: string,
-  messages: Record<string, { message: string }>,
-): string {
-  return body.replace(/__MSG_([A-Za-z0-9_@]+)__/g, (whole, key) => {
-    const entry = messages[key];
-    return entry ? entry.message : whole;
-  });
 }
 
 /**
@@ -287,7 +268,7 @@ export class HeliumExtensionPlugin {
       const messages = ctxWithI18n.i18nMessages ?? {};
       let body = new TextDecoder().decode(bytes);
 
-      body = substituteMsgPlaceholders(body, messages);
+      body = substituteMessagePlaceholders(body, messages);
 
       if (isHtml(rel)) {
         body = injectBootstrapIntoBackgroundPage(body, ctxWithI18n);

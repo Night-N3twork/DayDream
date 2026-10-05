@@ -3,22 +3,21 @@ import type { ExtensionContext } from '@core/helium';
 import type { ExtensionBridgeChannel } from '@core/helium';
 
 /**
- * Popup sizing bounds. Chrome's own popup autosizes to body content
- * clamped to 800×600. We use a slightly tighter width (380) that
- * matches most real extensions (uBlock Origin, Bitwarden, etc.), but
- * mirror Chrome's 600px height ceiling. `minHeight` is the pre-load
- * placeholder — the resize channel below shrinks or grows the wrapper
- * once the popup document reports its scrollHeight.
+ * Popup sizing bounds modeled after a compact browser extension menu.
+ * The iframe reports its content size after load; dimensions are clamped
+ * to the viewport and Chrome's approximate 800×600 popup ceiling.
  */
-const POPUP_WIDTH = 380;
+const POPUP_WIDTH = 312;
 const POPUP_MIN_HEIGHT = 120;
 const POPUP_MAX_HEIGHT = 600;
 const POPUP_ANCHOR_GAP = 4;
+const POPUP_SIDEBAR_GAP = 8;
 const POPUP_EDGE_MARGIN = 8;
 
 let currentPopup: HTMLDivElement | null = null;
 let currentPopupOwner: { extId: string; win: Window; channel: ExtensionBridgeChannel | null } | null = null;
 let currentPopupIframe: HTMLIFrameElement | null = null;
+let currentPopupAnchor: { el: HTMLElement; ariaExpanded: string | null; outline: string; outlineOffset: string; backgroundColor: string } | null = null;
 let dismissHandler: ((e: MouseEvent) => void) | null = null;
 let resizeMessageHandler: ((e: MessageEvent) => void) | null = null;
 
@@ -27,6 +26,8 @@ export interface OpenExtensionPopupOpts {
 	ctx: ExtensionContext;
 	popupPath: string;
 	anchorEl: HTMLElement;
+	placement?: 'bottom-start' | 'right-start';
+	highlightAnchor?: boolean;
 }
 
 export function openExtensionPopup(opts: OpenExtensionPopupOpts): void {
@@ -34,32 +35,49 @@ export function openExtensionPopup(opts: OpenExtensionPopupOpts): void {
 
 	const wrapper = document.createElement('div');
 	wrapper.className = 'extension-popup-wrapper';
-	Object.assign(wrapper.style, {
+  Object.assign(wrapper.style, {
 		position: 'fixed',
 		zIndex: '2147483647',
+		boxSizing: 'border-box',
 		width: `${POPUP_WIDTH}px`,
 		height: `${POPUP_MIN_HEIGHT}px`,
 		maxHeight: `${POPUP_MAX_HEIGHT}px`,
-		boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
-		background: 'rgba(28,28,32,0.97)',
-		border: '1px solid rgba(255,255,255,0.06)',
-		borderRadius: '10px',
-		overflow: 'hidden',
-	} as Partial<CSSStyleDeclaration>);
+    overflow: 'hidden',
+    background: '#303030',
+    border: '1px solid #555',
+    borderRadius: '4px',
+    boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+  } as Partial<CSSStyleDeclaration>);
 
-	positionWrapper(wrapper, opts.anchorEl);
+  const status = document.createElement('div');
+  status.className = 'extension-popup-status';
+  status.setAttribute('role', 'status');
+  status.textContent = 'Loading extension…';
+  Object.assign(status.style, {
+    position: 'absolute', inset: '0', zIndex: '1', display: 'grid',
+    placeItems: 'center', padding: '16px', textAlign: 'center',
+    color: '#aaa',
+    background: '#303030',
+    font: '13px/1.5 system-ui, sans-serif',
+  } as Partial<CSSStyleDeclaration>);
 
-	const iframe = document.createElement('iframe');
+	positionWrapper(wrapper, opts.anchorEl, opts.placement);
+
+  const iframe = document.createElement('iframe');
 	iframe.style.width = '100%';
 	iframe.style.height = '100%';
+	iframe.style.display = 'block';
 	iframe.style.border = 'none';
-	iframe.style.background = 'transparent';
+	iframe.style.background = '#303030';
 	iframe.dataset['heliumPopupExtId'] = opts.extId;
-	wrapper.appendChild(iframe);
+	iframe.title = 'Extension popup';
+	iframe.addEventListener('load', () => status.remove(), { once: true });
+	wrapper.append(iframe, status);
 
 	document.body.appendChild(wrapper);
 	currentPopup = wrapper;
 	currentPopupIframe = iframe;
+	if (opts.highlightAnchor) highlightAnchor(opts.anchorEl);
 
 	// Auto-size the wrapper to whatever the popup's document reports.
 	// See `bootstrap/client.ts` — the popup bootstrap ResizeObserves
@@ -71,13 +89,18 @@ export function openExtensionPopup(opts: OpenExtensionPopupOpts): void {
 		if (e.source !== currentPopupIframe.contentWindow) return;
 		const data = e.data as { __helium_popup_size__?: unknown; w?: unknown; h?: unknown } | null;
 		if (!data || data.__helium_popup_size__ !== true) return;
-		const h = typeof data.h === 'number' ? data.h : NaN;
-		if (!Number.isFinite(h) || h <= 0) return;
-		const clamped = Math.min(POPUP_MAX_HEIGHT, Math.max(POPUP_MIN_HEIGHT, Math.ceil(h)));
-		currentPopup.style.height = `${clamped}px`;
+    const reportedWidth = typeof data.w === 'number' ? data.w : POPUP_WIDTH;
+    const reportedHeight = typeof data.h === 'number' ? data.h : NaN;
+    if (!Number.isFinite(reportedWidth) || reportedWidth <= 0 || !Number.isFinite(reportedHeight) || reportedHeight <= 0) return;
+    const maxWidth = Math.max(160, window.innerWidth - POPUP_EDGE_MARGIN * 2);
+    const width = Math.min(800, maxWidth, Math.max(220, Math.ceil(reportedWidth)));
+    const maxHeight = Math.max(POPUP_MIN_HEIGHT, Math.min(POPUP_MAX_HEIGHT, window.innerHeight - POPUP_EDGE_MARGIN * 2));
+    const height = Math.min(maxHeight, Math.max(POPUP_MIN_HEIGHT, Math.ceil(reportedHeight)));
+    currentPopup.style.width = `${width}px`;
+    currentPopup.style.height = `${height}px`;
 		// Re-run positioning so a grown popup that overflows the
 		// bottom edge flips above the anchor.
-		positionWrapper(currentPopup, opts.anchorEl);
+		positionWrapper(currentPopup, opts.anchorEl, opts.placement);
 	};
 	window.addEventListener('message', resizeMessageHandler);
 
@@ -89,9 +112,12 @@ export function openExtensionPopup(opts: OpenExtensionPopupOpts): void {
 			}, { once: true });
 			tryRegisterPopupTarget(opts.extId, iframe);
 		})
-		.catch((err) => {
-			console.warn('[helium/popupHost] spawn failed:', err);
-		});
+      .catch((err) => {
+        console.warn('[helium/popupHost] spawn failed:', err);
+        status.setAttribute('role', 'alert');
+        status.textContent = 'Could not open this extension popup.';
+        status.style.color = 'var(--error-color, #f87171)';
+      });
 
 	dismissHandler = (e: MouseEvent) => {
 		if (!wrapper.contains(e.target as Node) && !opts.anchorEl.contains(e.target as Node)) {
@@ -110,15 +136,33 @@ export function openExtensionPopup(opts: OpenExtensionPopupOpts): void {
  * sides so a popup near any viewport edge can't render off-screen.
  *
  * Reads `wrapper.style.height` if set (post-resize); falls back to the
- * min-height placeholder for the initial placement.
+ * initial compact-height placeholder for the initial placement.
  */
-function positionWrapper(wrapper: HTMLDivElement, anchorEl: HTMLElement): void {
+function positionWrapper(
+  wrapper: HTMLDivElement,
+  anchorEl: HTMLElement,
+  placement: OpenExtensionPopupOpts['placement'] = 'bottom-start',
+): void {
 	const rect = anchorEl.getBoundingClientRect();
 	const viewportH = window.innerHeight;
 	const viewportW = window.innerWidth;
 
 	const parsedH = parseInt(wrapper.style.height || '', 10);
-	const currentH = Number.isFinite(parsedH) && parsedH > 0 ? parsedH : POPUP_MIN_HEIGHT;
+  const currentH = Number.isFinite(parsedH) && parsedH > 0 ? parsedH : POPUP_MIN_HEIGHT;
+  const parsedW = parseInt(wrapper.style.width || '', 10);
+  const currentW = Number.isFinite(parsedW) && parsedW > 0 ? parsedW : POPUP_WIDTH;
+
+	if (placement === 'right-start') {
+		const spaceRight = viewportW - rect.right - POPUP_SIDEBAR_GAP;
+		const spaceLeft = rect.left - POPUP_SIDEBAR_GAP;
+		const left = spaceRight >= currentW || spaceRight >= spaceLeft
+			? Math.min(rect.right + POPUP_SIDEBAR_GAP, viewportW - currentW - POPUP_EDGE_MARGIN)
+			: Math.max(POPUP_EDGE_MARGIN, rect.left - currentW - POPUP_SIDEBAR_GAP);
+		wrapper.style.left = `${left}px`;
+		wrapper.style.top = `${Math.max(POPUP_EDGE_MARGIN, Math.min(rect.top, viewportH - currentH - POPUP_EDGE_MARGIN))}px`;
+		wrapper.style.bottom = '';
+		return;
+	}
 
 	// Vertical: try below anchor, flip above if no room, then clamp.
 	// Clear whichever coordinate we're not using so re-positioning
@@ -145,13 +189,39 @@ function positionWrapper(wrapper: HTMLDivElement, anchorEl: HTMLElement): void {
 	const desiredLeft = rect.left;
 	const left = Math.max(
 		POPUP_EDGE_MARGIN,
-		Math.min(desiredLeft, viewportW - POPUP_WIDTH - POPUP_EDGE_MARGIN),
+    Math.min(desiredLeft, viewportW - currentW - POPUP_EDGE_MARGIN),
 	);
 	wrapper.style.left = `${left}px`;
 }
 
+function highlightAnchor(el: HTMLElement): void {
+	currentPopupAnchor = {
+		el,
+		ariaExpanded: el.getAttribute('aria-expanded'),
+		outline: el.style.outline,
+		outlineOffset: el.style.outlineOffset,
+		backgroundColor: el.style.backgroundColor,
+	};
+	el.setAttribute('aria-expanded', 'true');
+	el.style.outline = '2px solid #fff';
+	el.style.outlineOffset = '1px';
+	el.style.backgroundColor = 'rgba(255,255,255,0.12)';
+}
+
+function restoreAnchor(): void {
+	if (!currentPopupAnchor) return;
+	const { el, ariaExpanded, outline, outlineOffset, backgroundColor } = currentPopupAnchor;
+	if (ariaExpanded === null) el.removeAttribute('aria-expanded');
+	else el.setAttribute('aria-expanded', ariaExpanded);
+	el.style.outline = outline;
+	el.style.outlineOffset = outlineOffset;
+	el.style.backgroundColor = backgroundColor;
+	currentPopupAnchor = null;
+}
+
 export function closeExtensionPopup(): void {
 	if (!currentPopup) return;
+	restoreAnchor();
 	if (dismissHandler) {
 		document.removeEventListener('click', dismissHandler);
 		dismissHandler = null;
