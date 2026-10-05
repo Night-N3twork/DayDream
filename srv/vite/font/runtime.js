@@ -4,6 +4,8 @@ function fontObfuscationRuntime() {
   let mappings = {};
   let reverseMappings = {};
   let initialized = false;
+  let mappingsLoaded = false;
+  let currentObserver = null;
   let globalObfuscationEnabled = true;
   let defaultFontType = "plusjakartasans";
   if (typeof window !== "undefined" && window.FONT_OBFUSCATION_CONFIG) {
@@ -44,7 +46,8 @@ function fontObfuscationRuntime() {
   };
 
   async function initMappings() {
-    if (initialized) return;
+    if (mappingsLoaded) return;
+    mappingsLoaded = true;
     try {
       var _base = self.__ddxBase || "/";
       const [plusjakartasansMap, plusjakartasansRev] = await Promise.all([
@@ -62,12 +65,20 @@ function fontObfuscationRuntime() {
 
       mappings = { plusjakartasans: plusjakartasansMap };
       reverseMappings = { plusjakartasans: plusjakartasansRev };
-      initialized = true;
 
       setupClipboardInterceptor();
+    } catch (e) {
+      mappingsLoaded = false;
+    }
+  }
 
-      setTimeout(() => processExistingDOM(), 100);
-    } catch (e) {}
+  // Enable obfuscation only AFTER the obf font is loaded (see Nebula runtime
+  // note): keeps text real/readable until the font is ready, avoiding a
+  // fallback-CJK flash on first load.
+  function enableObfuscation() {
+    if (initialized) return;
+    initialized = true;
+    processExistingDOM();
   }
 
   function encode(text, fontType = defaultFontType) {
@@ -372,6 +383,10 @@ function fontObfuscationRuntime() {
   function setupMutationObserver() {
     if (typeof MutationObserver === "undefined") return;
 
+    if (currentObserver) {
+      try { currentObserver.disconnect(); } catch (e) {}
+    }
+
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
@@ -399,6 +414,7 @@ function fontObfuscationRuntime() {
       subtree: true,
       characterData: true,
     });
+    currentObserver = observer;
   }
 
   function setupClipboardInterceptor() {
@@ -478,16 +494,16 @@ function fontObfuscationRuntime() {
     }
   }
 
+  async function boot() {
+    await initMappings();
+    await waitForFontsToLoad();
+    enableObfuscation();
+  }
+
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", async () => {
-      await initMappings();
-      await waitForFontsToLoad();
-      setTimeout(() => processExistingDOM(), 200);
-    });
+    document.addEventListener("DOMContentLoaded", boot);
   } else {
-    Promise.all([initMappings(), waitForFontsToLoad()]).then(() => {
-      setTimeout(() => processExistingDOM(), 200);
-    });
+    boot();
   }
 
   window.addEventListener("load", () => {
@@ -498,7 +514,22 @@ function fontObfuscationRuntime() {
     }, 300);
   });
 
-  initMappings();
+  // Re-apply after client-side (Astro view-transition) navigations that swap
+  // the <body> without a full reload. Harmless where these events never fire.
+  document.addEventListener("astro:before-swap", (e) => {
+    try {
+      const doc = e && e.newDocument;
+      if (initialized && doc && doc.body) {
+        doc.body.classList.add("font-obfuscation-ready");
+      }
+    } catch (err) {}
+  });
+  document.addEventListener("astro:after-swap", () => {
+    if (initialized) processExistingDOM();
+  });
+  document.addEventListener("astro:page-load", () => {
+    if (initialized) processExistingDOM();
+  });
 }
 
 export function runtime() {

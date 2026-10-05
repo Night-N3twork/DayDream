@@ -19,5 +19,11 @@ export function globals() {
 }
 
 export function coverIdentity() {
-	return buildConfig().cover.identity;
+	const identity = buildConfig().cover.identity;
+	return Object.freeze({
+		...identity,
+		product: 'Daydream',
+		title: 'Daydream',
+		description: 'The Daydream browser.',
+	});
 }

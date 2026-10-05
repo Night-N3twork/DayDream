@@ -14,6 +14,7 @@
 
 import { decodeEnvelope, type AgentMessage } from './frameTransport';
 import { isNyxOrigin } from './handshake';
+import { basePath } from '@utils/basepath';
 
 const AGENT_SCRIPT_PATH = 'assets/nyx-bridge-agent.js';
 const AGENT_INJECT_MARK = '__nyxBridgeAgentInjected';
@@ -116,7 +117,6 @@ export function installNyxBridgeHook(opts: NyxHookInstallerOpts): void {
 	}
 
 	const hostOrigin = location.origin;
-	const basePath = (window as any).basePath ?? '/';
 
 	messageListener = (ev: MessageEvent) => {
 		const msg = decodeEnvelope(ev.data);

@@ -35,6 +35,11 @@ const libcurlPath = path.dirname(
 const sjControllerPath = path.resolve("src/core/SJ/controller/dist");
 const obscuraIifePath = path.resolve("src/pkgs/Obscura/dist");
 const copyMap = {
+  proxyContext: {
+    path: path.resolve('src/apis/proxyContext/generated'),
+    files: ['proxy-context-adapter.js'],
+    dest: routePaths.scramjet,
+  },
   scramjet: {
     path: scramjetPath,
     files: [

@@ -4,7 +4,11 @@ import { scrubBuffer, scrubJavaScript } from './scrub';
 // Vocabulary tokens aligned to their word length. `scrubBuffer` throws if any
 // token has a different byte length from its word.
 // scramjet=8, scram=5, wisp=4, epoxy=5, libcurl=7, mercuryworkshop=15,
-// ultraviolet=11, rawproxy=8, proxy-transports=16, bare=4, proxy=5.
+// ultraviolet=11, rawproxy=8, proxy-transports=16, bare=4.
+// NOTE: standalone "proxy" is no longer an artifact word (too generic; it
+// corrupted user-facing copy). The compound tells rawproxy/proxy-transports
+// remain. CASE_SENSITIVE_ARTIFACT_WORDS is now empty → all words match
+// case-insensitively.
 const alignedVocab = {
   scramjet: 'AAAAAAAA',
   scram: 'BBBBB',
@@ -16,19 +20,20 @@ const alignedVocab = {
   rawproxy: 'HHHHHHHH',
   'proxy-transports': 'IIIIIIIIIIIIIIII',
   bare: 'JJJJ',
-  proxy: 'KKKKK',
 };
 
 describe('scrubBuffer', () => {
   it('replaces every forbidden word with its equal-length token', () => {
-    const buf = Buffer.from('scramjet is scram and wisp says proxy but not Proxy');
+    const buf = Buffer.from('scramjet is scram and wisp says epoxy');
     scrubBuffer(buf, alignedVocab);
     const out = buf.toString();
-    expect(out).not.toMatch(/scramjet|wisp/i);
-    expect(out).toContain('Proxy'); // case-sensitive: capitalized Proxy survives
-    expect(out).not.toContain(' proxy '); // lowercase proxy scrubbed
+    expect(out).not.toMatch(/scramjet|wisp|epoxy/i);
+    // standalone "proxy" is not in the vocab, so it is never touched
+    const buf2 = Buffer.from('a proxy and a Proxy');
+    scrubBuffer(buf2, alignedVocab);
+    expect(buf2.toString()).toBe('a proxy and a Proxy');
   });
-  it('is case-insensitive for words other than proxy', () => {
+  it('is case-insensitive for all artifact words', () => {
     const buf = Buffer.from('Scramjet SCRAMJET scRaMjEt');
     scrubBuffer(buf, alignedVocab);
     const out = buf.toString();

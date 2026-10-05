@@ -8,6 +8,7 @@ declare module 'virtual:ddx-build-config' {
 	const config: {
 		readonly buildId: string;
 		readonly workspace: string;
+		readonly ads: { readonly enabled: boolean };
 		readonly cover: {
 			readonly provider: string;
 			readonly assetPrefix: string;

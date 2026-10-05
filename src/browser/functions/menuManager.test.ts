@@ -1,8 +1,64 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MenuManager } from './menuManager';
 import { TabPageClient } from '@browser/tabs/pageClient';
 
+const popupMock = vi.hoisted(() => ({ openExtensionPopup: vi.fn() }));
+vi.mock('@browser/extensions/popupHost', () => popupMock);
+vi.mock('@core/helium/host/i18n', () => ({
+  getCachedI18n: () => ({
+    locale: 'en',
+    messages: { extname: { message: 'Localized Extension Name' } },
+  }),
+  prepareI18nFor: vi.fn(),
+}));
+
+afterEach(() => vi.unstubAllGlobals());
+
 describe('MenuManager menus', () => {
+  it('opens extension-row popups beside and highlights the sidebar Extensions button', () => {
+    const sidebarButton = document.createElement('button');
+    const rowButton = document.createElement('button');
+    document.body.append(sidebarButton, rowButton);
+    const manager = new MenuManager({} as never, {} as never);
+    manager.extensionsMenu(sidebarButton);
+
+    (manager as any).onExtensionRowClick(
+      { id: 'test', origin: 'test.ddx', enabled: true, manifest: { name: 'Test' } },
+      'popup.html',
+      undefined,
+      { closeMenu: vi.fn() },
+      rowButton,
+    );
+
+    expect(popupMock.openExtensionPopup).toHaveBeenCalledWith(expect.objectContaining({
+      anchorEl: sidebarButton,
+      placement: 'right-start',
+    }));
+    sidebarButton.remove();
+    rowButton.remove();
+    popupMock.openExtensionPopup.mockClear();
+  });
+
+  it('resolves localized manifest names before showing extension entries', async () => {
+    const entry = {
+      id: 'localized-extension',
+      name: '__MSG_extName__',
+      version: '1.0',
+      manifestVersion: 3,
+      enabled: true,
+      origin: 'localized-extension.ddx',
+      manifest: { name: '__MSG_extName__', default_locale: 'en' },
+    };
+    vi.stubGlobal('extensions', { listAllWithManifest: async () => [entry] });
+    const manager = new MenuManager({} as never, {} as never);
+
+    const entries = await (manager as any).fetchEntries();
+
+    expect(entries[0].name).toBe('Localized Extension Name');
+    expect(entries[0].manifest.name).toBe('Localized Extension Name');
+    vi.unstubAllGlobals();
+  });
+
   it('keeps an open menu open when pointerdown targets a trigger descendant', () => {
     const menuBtn = document.createElement('button');
     const icon = document.createElement('span');

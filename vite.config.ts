@@ -45,12 +45,15 @@ import { handoffPostCopyPlugin } from './srv/vite/handoff-postcopy';
 import { aggregateSwPlugin } from './srv/vite/aggregate-sw';
 import { pruneDevArtifactsPlugin } from './srv/vite/prune-dev-artifacts';
 import { landingSplitPlugin } from './srv/vite/landing-split';
+import { analyticsInlinePlugin } from './srv/vite/analytics-inline';
 import { devWispPlugin } from './srv/vite/dev-wisp';
 import { breakInternalSchemePlugin } from './srv/vite/break-internal-scheme';
 import { coLocateAppPlugin } from './srv/vite/colocate-app';
 
 const __ddxSeed = resolveSeed();
-const __ddxBuildConfig = createBuildConfig(__ddxSeed);
+const __ddxBuildConfig = createBuildConfig(__ddxSeed, {
+  adsEnabled: process.env.DDX_ENABLE_ADS !== '0',
+});
 const __ddxChunkNaming = createChunkNaming(__ddxBuildConfig, __ddxSeed);
 if (process.env.NODE_ENV === 'production') {
   console.log(`[ddx] build seed: ${__ddxSeed.slice(0, 8)}… → build ${__ddxBuildConfig.buildId}`);
@@ -101,14 +104,9 @@ export default defineConfig({
     {
       name: "strip-console-and-debugger",
       enforce: "post",
-      generateBundle(_, bundle) {
-        for (const file in bundle) {
-          const chunk = bundle[file];
-          if (chunk.type === "chunk" && chunk.code) {
-            chunk.code = chunk.code.replace(/\bdebugger\s*;?/g, "");
-          }
-        }
-      },
+      // Chunk debugger statements are already removed by Terser. Never
+      // regex-rewrite chunk bytes: embedded extension code contains the
+      // chrome.debugger API, and deleting that name corrupts its syntax.
       async closeBundle() {
         const __dirname = dirname(fileURLToPath(import.meta.url));
         const outDir = resolve(__dirname, "dist");
@@ -199,6 +197,10 @@ export default defineConfig({
     // rippable). Runs after scrub/assert/strip-console have processed the files
     // at their original root locations.
     coLocateAppPlugin(__ddxBuildConfig),
+    // After co-location (which sweeps root .js into dist/app/): emits the
+    // analytics fallback asset at root + app/. Content is pre-verified free
+    // of artifact words (upstream GTM bytes), so post-scrub emission is safe.
+    analyticsInlinePlugin('G-BMERY7ZH6Z', { extraDirs: ['app'] }),
     // Generate the SVG bootloader NEXT TO the co-located app shell (after
     // colocate), so /app/index.svg's relative ./assets refs resolve under
     // /app/assets and it boots the app directly — no redirect needed.
@@ -221,7 +223,7 @@ export default defineConfig({
     // console warning at boot.
     headers: {
       "Cross-Origin-Opener-Policy": "same-origin",
-      "Cross-Origin-Embedder-Policy": "require-corp",
+      "Cross-Origin-Embedder-Policy": "credentialless",
     },
     watch: {
       ignored: [

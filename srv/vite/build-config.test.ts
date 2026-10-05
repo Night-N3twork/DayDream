@@ -7,6 +7,10 @@ describe('createBuildConfig', () => {
     const b = createBuildConfig('seed-a');
     expect(a).toEqual(b);
   });
+  it('enables Daydream ads by default and supports disabling them per build', () => {
+    expect(createBuildConfig('ads-default').ads.enabled).toBe(true);
+    expect(createBuildConfig('ads-disabled', { adsEnabled: false }).ads.enabled).toBe(false);
+  });
   it('produces different values for different seeds', () => {
     const a = createBuildConfig('seed-a');
     const b = createBuildConfig('seed-b');

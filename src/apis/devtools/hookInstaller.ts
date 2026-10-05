@@ -16,6 +16,7 @@
  */
 
 import type { DevToolsManager } from './manager';
+import { basePath } from '@utils/basepath';
 
 const AGENT_SCRIPT_PATH = 'assets/devtools-agent.js';
 const AGENT_INJECT_MARK = '__ddxDevtoolsAgentInjected';
@@ -189,7 +190,6 @@ export function installDevToolsHook(
 	};
 
 	const hostOrigin = location.origin;
-	const basePath = (window as any).basePath ?? '/';
 
 	const installOnFrame = (frame: any) => {
 		try {

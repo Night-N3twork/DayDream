@@ -27,6 +27,7 @@ import { backgroundInit } from './boot/backgroundInit';
 import { featureInit } from './boot/featureInit';
 import { defineLazyGlobal } from './boot/lazyGlobals';
 import { globals as __ddxGlobals, buildConfig } from '@core/shared/build-runtime';
+import { injectDaydreamAds } from '@apis/ads';
 import type * as ScramjetControllerModule from '@mercuryworkshop/scramjet-controller';
 
 // Controller capture is deferred into the DOMContentLoaded handler below so
@@ -72,6 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 	} else {
 		console.log('[Main] Inside Terbium — skipping foreign-SW cleanup');
 	}
+	injectDaydreamAds(buildConfig().ads.enabled);
 
 	// Runtime handoff: capture the controller from its seeded non-enum slot,
 	// then delete the slot so the rest of the app can't reach it by name.

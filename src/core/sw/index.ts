@@ -7,6 +7,7 @@ import {
 	serveResFile
 } from '@core/sw/cache';
 import { installConsolePolyfill } from '@core/sw/console';
+import { serveAnalyticsTag } from '@core/sw/analytics';
 import { basePath, stripBase } from '@core/shared/path';
 import {
 	buildTransport,
@@ -29,7 +30,7 @@ import {
 	applySwDnrUpdate,
 	evaluateSwLevelRules,
 	SW_DNR_UPDATE_MESSAGE_TYPE,
-	type SwDnrUpdateMessage,
+	type SwDnrUpdateMessage
 } from '@core/helium/host/webRequest/sw-hook';
 
 if (navigator.userAgent.includes('Firefox')) {
@@ -59,6 +60,7 @@ declare function importScripts(...urls: string[]): void;
 const swSelf = self as unknown as {
 	skipWaiting: () => void;
 	clients: { claim: () => Promise<void> };
+	location: { origin: string };
 	addEventListener: (type: string, listener: (event: any) => void) => void;
 };
 
@@ -228,6 +230,15 @@ class DDXWorker {
 			return fetch(event.request);
 		}
 
+		// First-party analytics library. Served from cache/the fixed
+		// upstream so static deploys work; never waits on transport.
+		const analyticsResponse = await serveAnalyticsTag(event.request, {
+			origin: swSelf.location.origin,
+			caches,
+			fetchFn: fetch
+		});
+		if (analyticsResponse) return analyticsResponse;
+
 		await this.wispManager.ensureWisp();
 
 		try {
@@ -334,11 +345,11 @@ swSelf.addEventListener('activate', (event: ExtendableEventLike) => {
 	event.waitUntil(
 		swSelf.clients
 			.claim()
-			.catch((err) => {
+			.catch(err => {
 				console.warn('[DDXWorker] clients.claim() failed:', err);
 			})
 			.then(() =>
-				ddx.primeCache().catch((err) => {
+				ddx.primeCache().catch(err => {
 					console.warn(
 						'[DDXWorker] primeCache failed (continuing):',
 						err
@@ -346,7 +357,7 @@ swSelf.addEventListener('activate', (event: ExtendableEventLike) => {
 				})
 			)
 			.then(() =>
-				ddx.ensureWisp().catch((err) => {
+				ddx.ensureWisp().catch(err => {
 					console.warn(
 						'[DDXWorker] ensureWisp failed (continuing):',
 						err
@@ -375,10 +386,7 @@ swSelf.addEventListener('message', (event: MessageEventLike) => {
 			const url = (data as { url?: unknown }).url;
 			if (typeof url === 'string' && url.length > 0) {
 				(self as any).__ddxOverrideWisp = url;
-				console.log(
-					'[DDXWorker] received Terbium Wisp override:',
-					url
-				);
+				console.log('[DDXWorker] received Terbium Wisp override:', url);
 			}
 			break;
 		}

@@ -9,3 +9,4 @@ export {
   type PreparedI18n,
 } from './negotiate';
 export { formatMessage } from './format';
+export { lookupMessage, substituteMessagePlaceholders } from './lookup';

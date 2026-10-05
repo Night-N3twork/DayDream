@@ -102,6 +102,32 @@ type EmbeddedBinary = {
   readonly quote: string;
 };
 
+// Swap every PROTECTED_LITERALS occurrence for a word-free marker, returning
+// the guarded text plus a `restore` that puts the verbatim literals back after
+// the byte scrub. Markers contain no artifact word so the scrub can't touch
+// them. Shared by the JS path and the plain-text (HTML/CSS/JSON/SVG) path.
+export function protectLiterals(text: string): {
+  guarded: string;
+  restore: (scrubbed: string) => string;
+} {
+  const items: { marker: string; value: string }[] = [];
+  let guarded = text;
+  for (const literal of PROTECTED_LITERALS) {
+    if (!guarded.includes(literal)) continue;
+    const marker = `__PROTECTED_LITERAL_${items.length}__`;
+    items.push({ marker, value: literal });
+    guarded = guarded.split(literal).join(marker);
+  }
+  return {
+    guarded,
+    restore: (scrubbed: string) => {
+      let out = scrubbed;
+      for (const { marker, value } of items) out = out.split(marker).join(value);
+      return out;
+    },
+  };
+}
+
 export const scrubJavaScript = (
   source: string,
   vocabulary: Record<string, string>,
@@ -141,23 +167,13 @@ export const scrubJavaScript = (
       return `${quote}${prefix}${marker}${quote}`;
     },
   );
-  // Protect load-bearing external literals (e.g. `nightwisp.me`) so the byte
-  // scrub leaves them intact. Swap each for a word-free marker before the
-  // scrub and restore verbatim afterwards.
-  const protectedLiterals: { marker: string; value: string }[] = [];
-  let literalGuardedSource = protectedSource;
-  for (const literal of PROTECTED_LITERALS) {
-    if (!literalGuardedSource.includes(literal)) continue;
-    const marker = `__PROTECTED_LITERAL_${protectedLiterals.length}__`;
-    protectedLiterals.push({ marker, value: literal });
-    literalGuardedSource = literalGuardedSource.split(literal).join(marker);
-  }
-  const bytes = Buffer.from(literalGuardedSource);
+  // Protect load-bearing external literals + user-facing display labels (see
+  // PROTECTED_LITERALS) so the byte scrub leaves them intact. Swap each for a
+  // word-free marker before the scrub and restore verbatim afterwards.
+  const { guarded, restore } = protectLiterals(protectedSource);
+  const bytes = Buffer.from(guarded);
   scrubBuffer(bytes, vocabulary);
-  let output = bytes.toString('utf8');
-  for (const { marker, value } of protectedLiterals) {
-    output = output.split(marker).join(value);
-  }
+  let output = restore(bytes.toString('utf8'));
   for (const item of embedded) {
     let payload = item.payload;
     for (const word of forbiddenWords) {
@@ -193,6 +209,19 @@ export const scrubArtifact = async (
     const counter = Buffer.from(inputText, 'utf8');
     const replacements = scrubBuffer(counter, vocabulary);
     await writeFile(path, output);
+    return { replacements };
+  }
+
+  // Plain-text assets (HTML/CSS/JSON/SVG/…): scrub bytes but honor
+  // PROTECTED_LITERALS so user-facing labels (e.g. an <option>Scramjet</option>
+  // in built HTML) and external endpoints aren't mangled. Binary assets fall
+  // through to the raw byte scrub below.
+  if (/\.(?:html?|css|json|svg|txt|map|xml|webmanifest)$/i.test(path)) {
+    const inputText = source.toString('utf8');
+    const { guarded, restore } = protectLiterals(inputText);
+    const buf = Buffer.from(guarded);
+    const replacements = scrubBuffer(buf, vocabulary);
+    await writeFile(path, restore(buf.toString('utf8')));
     return { replacements };
   }
 

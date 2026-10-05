@@ -28,8 +28,6 @@ class NewTabShortcuts {
 	private defaultShortcuts: Omit<Shortcut, 'id' | 'favicon'>[] = [
 		{ title: 'Google', url: 'https://google.com' },
 		{ title: 'YouTube', url: 'https://youtube.com' },
-		{ title: 'GitLab', url: 'https://gitlab.com' },
-		{ title: 'Reddit', url: 'https://reddit.com' },
 		{ title: 'Twitter', url: 'https://twitter.com' },
 		{ title: 'Wikipedia', url: 'https://wikipedia.org' },
 		{ title: 'Stack Overflow', url: 'https://stackoverflow.com' },
@@ -37,7 +35,9 @@ class NewTabShortcuts {
 		{ title: 'Netflix', url: 'https://netflix.com' },
 		{ title: 'Amazon', url: 'https://amazon.com' },
 		{ title: 'Spotify', url: 'https://spotify.com' },
-		{ title: 'Twitch', url: 'https://twitch.tv' }
+		{ title: 'Twitch', url: 'https://twitch.tv' },
+		{ title: 'Instagram', url: 'https://instagram.com' },
+		{ title: 'TikTok', url: 'https://tiktok.com' }
 	];
 
 	constructor() {

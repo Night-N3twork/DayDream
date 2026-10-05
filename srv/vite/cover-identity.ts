@@ -1,14 +1,7 @@
 import type { Plugin } from 'vite';
 import type { BuildConfig } from './build-config';
 
-// Rewrites branding + strips analytics from every emitted HTML file.
-//
-// The GA-stripping regex uses a tempered-greedy token — `(?:(?!<\/script>)[\s\S])*?`
-// — so the `[\s\S]` class cannot swallow an intervening `</script>` on its way
-// to `googletagmanager`. Without this, a naive `<script[\s\S]*?googletagmanager`
-// pattern matches from the FIRST `<script>` in the file (the `__ddxBase` IIFE),
-// crosses every intermediate `</script>` boundary, and destroys every legitimate
-// loader script between that opening tag and the GA closing tag.
+// Rewrites branding while preserving browser-side analytics initialization.
 export function coverIdentityPlugin(config: BuildConfig): Plugin {
   const { identity } = config.cover;
   return {
@@ -21,7 +14,7 @@ export function coverIdentityPlugin(config: BuildConfig): Plugin {
         // app's own tab-strip, whose label is driven by each page's <title>.
         // Rewriting those would show e.g. "Portal" for the new tab — so scope
         // the <title> replacement to the shell entry (anything NOT under
-        // src/pages/). All other rewrites (meta/keywords/og/GA-strip/DDX) still
+        // src/pages/). All other rewrites (meta/keywords/og/DDX) still
         // apply to every emitted HTML.
         const file = (ctx?.filename ?? '').replace(/\\/g, '/');
         const isInternalPage = file.includes('/src/pages/');
@@ -43,22 +36,6 @@ export function coverIdentityPlugin(config: BuildConfig): Plugin {
           .replace(
             /<meta property="og:image"[^>]*>/,
             '<meta property="og:image" content="./res/logo.png" />',
-          )
-          // Strip the analytics block wholesale in production. Task 22 restores
-          // it on the landing page only. Tempered-greedy tokens keep the match
-          // scoped to a single <script>…</script> pair.
-          .replace(
-            /<script\b[^>]*>(?:(?!<\/script>)[\s\S])*?googletagmanager(?:(?!<\/script>)[\s\S])*?<\/script>\s*/g,
-            '',
-          )
-          // Also drop the two GA preconnect hints so nothing points at Google.
-          .replace(
-            /<link\s+rel="preconnect"\s+href="https:\/\/www\.googletagmanager\.com"[^>]*>\s*/g,
-            '',
-          )
-          .replace(
-            /<link\s+rel="preconnect"\s+href="https:\/\/www\.google-analytics\.com"[^>]*>\s*/g,
-            '',
           )
           // Replace bare "DDX" tokens in body/label text with the cover product
           // name. Case-sensitive and word-bounded so lowercase class/id tokens

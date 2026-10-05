@@ -1,11 +1,12 @@
 {
   "name": "daydreamx",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "type": "module",
   "scripts": {
     "dev": "tsx devserver.ts",
     "core:dev": "vite dev --host & tsx index.ts",
-    "prebuild:all": "npm run neutron:build && npm run obscura:build && npm run obscura:bundle && npm run obscura:bundle:iife && npm run sw:build && npm run config:build && npm run controller:build && npm run helium-bootstrap:build && npm run neutron-worker:build && npm run mini-chrome:build && npm run devtools-agent:build && npm run devtools-worker-agent:build && npm run nyx-bridge:build && npm run nyx-bridge-agent:build && tsc -p tsconfig.build.json",
+    "prebuild:all": "npm run proxy-context:build && npm run neutron:build && npm run obscura:build && npm run obscura:bundle && npm run obscura:bundle:iife && npm run sw:build && npm run config:build && npm run controller:build && npm run helium-bootstrap:build && npm run neutron-worker:build && npm run mini-chrome:build && npm run devtools-agent:build && npm run devtools-worker-agent:build && npm run nyx-bridge:build && npm run nyx-bridge-agent:build && tsc -p tsconfig.build.json",
+    "proxy-context:build": "node scripts/build-proxy-context.mjs",
     "build": "npm run prebuild:all && vite build",
     "neutron:build": "cd src/pkgs/neutron && npm run build",
     "preview": "vite preview",
@@ -44,6 +45,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/ui": "^4.1.7",
     "autoprefixer": "^10.4.21",
+    "entities": "^4.5.0",
     "glob": "^11.0.1",
     "happy-dom": "^20.9.0",
     "jsdom": "^29.1.1",
@@ -132,5 +134,6 @@
         }
       }
     }
-  }
+  },
+  "packageManager": "pnpm@12.8.1"
 }
