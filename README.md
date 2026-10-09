@@ -22,12 +22,19 @@ Windows is not supported.
 > [!WARNING]
 > DayDream Browser cannot be hosted on static web hosting platforms such as Netlify, GitHub Pages, or Cloudflare Pages.
 
+### Requirements
+
+- Node.js 20+ (tested on 24) and [pnpm](https://pnpm.io) 12
+- [Rust](https://rustup.rs) with the `wasm32-unknown-unknown` target and [`wasm-pack`](https://rustwasm.github.io/wasm-pack/) (builds the Obscura WASM codec)
+- Linux or macOS
+
 ```bash
 git clone https://gitlab.com/nightnetwork/daydreamx.git
-cd DayDreamX
+cd DayDream
+rustup target add wasm32-unknown-unknown
+cargo install wasm-pack   # or: curl -sSfL https://rustwasm.github.io/wasm-pack/installer/init.sh | sh
 pnpm install
 pnpm build
-cp config.example.js config.js
 pnpm start
 ```
 

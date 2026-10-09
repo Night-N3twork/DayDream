@@ -47,6 +47,7 @@
     "src/apis/platform/hosting.hostlist.ts",
     "src/apis/platform/hosting.hostlist.uo.ts",
     "pkgs/**",
+    "src/pkgs/neutron/vitest.config.ts",
     "src/**/__sanity__/**",
     "TSX/**",
     "demo/**"

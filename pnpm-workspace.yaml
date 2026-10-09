@@ -1,8 +1,7 @@
-ignoredBuiltDependencies:
-  - '@heroui/shared-utils'
-  - ttf2woff2
-onlyBuiltDependencies:
-  - '@mercuryworkshop/scramjet'
-  - bufferutil
-  - esbuild
-  - sqlite3
+allowBuilds:
+  '@heroui/shared-utils': true
+  '@parcel/watcher': true
+  bufferutil: true
+  core-js: true
+  esbuild: true
+  ttf2woff2: true
