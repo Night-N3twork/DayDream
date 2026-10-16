@@ -167,8 +167,9 @@ export const scrubJavaScript = (
       return `${quote}${prefix}${marker}${quote}`;
     },
   );
-  // Protect load-bearing external literals + user-facing display labels (see
-  // PROTECTED_LITERALS) so the byte scrub leaves them intact. Swap each for a
+  // Protect load-bearing external literals (see PROTECTED_LITERALS — currently
+  // empty: even display labels must scrub, since static detectors match
+  // case-insensitively) so the byte scrub leaves them intact. Swap each for a
   // word-free marker before the scrub and restore verbatim afterwards.
   const { guarded, restore } = protectLiterals(protectedSource);
   const bytes = Buffer.from(guarded);
@@ -213,8 +214,8 @@ export const scrubArtifact = async (
   }
 
   // Plain-text assets (HTML/CSS/JSON/SVG/…): scrub bytes but honor
-  // PROTECTED_LITERALS so user-facing labels (e.g. an <option>Scramjet</option>
-  // in built HTML) and external endpoints aren't mangled. Binary assets fall
+  // PROTECTED_LITERALS (currently empty — no display label survives; every
+  // entry would be a case-insensitive detector tell). Binary assets fall
   // through to the raw byte scrub below.
   if (/\.(?:html?|css|json|svg|txt|map|xml|webmanifest)$/i.test(path)) {
     const inputText = source.toString('utf8');
@@ -431,8 +432,9 @@ export const scrubPlugin = (config: BuildConfig, seed: string): Plugin => {
       const { readFile } = await import('node:fs/promises');
       for (const file of files) {
         const bytes = await readFile(file);
-        // Strip protected literals (e.g. `nightwisp.me`) before scanning so
-        // their intentional artifact-word substrings don't trip the gate.
+        // Strip protected literals before scanning so intentional survivors
+        // don't trip the gate. (The list is currently empty — any forbidden
+        // word remaining here is a hard build failure.)
         let haystack = bytes;
         for (const literal of PROTECTED_LITERALS) {
           const text = haystack.toString('binary').split(literal).join('');

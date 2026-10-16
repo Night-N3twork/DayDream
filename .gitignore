@@ -40,3 +40,5 @@ shoestring/
 Nebula/shoestring-nebula/
 shoestring-nebula/
 shoestring-*/
+# Constellation mono-repo (own git repo: lyra/vela/orion loader forks)
+constellation/

@@ -42,8 +42,9 @@ export function assertArtifactsPlugin(config: BuildConfig, seed: string): Plugin
         const rel = relative(outDir, path);
         if (rel.startsWith('.build-') || rel.startsWith('runtime/.builds')) continue;
         const source = await readFile(path);
-        // Strip protected literals (e.g. `nightwisp.me`) so their intentional
-        // artifact-word substrings don't trip the content gate.
+        // Strip protected literals before scanning so intentional survivors
+        // don't trip the content gate. (The list is currently empty, so this
+        // is a no-op — every artifact word in served bytes is a hard failure.)
         let scanSource = source;
         for (const literal of PROTECTED_LITERALS) {
           const text = scanSource.toString('binary').split(literal).join('');

@@ -105,22 +105,19 @@ export const CASE_SENSITIVE_ARTIFACT_WORDS: ReadonlySet<string> = new Set([]);
 // host. The scrubber swaps each occurrence for a word-free marker before the
 // byte pass and restores it verbatim afterwards. Keep this list minimal: every
 // entry is a deliberate, static "wisp"-style tell left in the bundle bytes.
-export const PROTECTED_LITERALS: readonly string[] = [
-	// User-facing transport / vendor DISPLAY labels (EXACT case). Code ids and
-	// imports stay lowercase and keep scrubbing; only these Capitalized human
-	// labels are restored verbatim so the Settings / Credits / Proxy tabs read
-	// correctly instead of showing random scrub tokens. Ordered longest-first so
-	// a shorter label that is a prefix of a longer one is protected in full.
-	// (No WISP/nightwisp entries are needed — `wisp` is no longer scrubbed.)
-	'Libcurl.js',
-	'Epoxy TLS',
-	'Ultraviolet',
-	'Scramjet',
-	'LibCurl',
-	'Libcurl',
-	'Pulsar',
-	'Epoxy'
-];
+//
+// The list is currently EMPTY, deliberately. Static detectors match
+// case-insensitively, so every previously-protected display label
+// (`Scramjet`, `LibCurl`, `Ultraviolet`, `Pulsar`, `Epoxy`, …) was a live
+// detection tell in served JS/HTML — and worse, substring protection
+// preserved those spellings INSIDE code identifiers too (`ScramjetClient`,
+// `installScramjetProxyContext`, `loadScramjetWasm`, `LibcurlClient`, …),
+// which are the bulk of the residual hits. User-facing labels therefore scrub
+// to seeded tokens (cosmetic tradeoff, functionally inert: option values,
+// transport ids, and route paths never contained artifact words). Do NOT
+// re-add display labels here without a runtime-decoding scheme that keeps the
+// contiguous literal out of the emitted bytes.
+export const PROTECTED_LITERALS: readonly string[] = [];
 
 // ---------------------------------------------------------------------------
 // KDF + token helpers

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { scrubBuffer, scrubJavaScript } from './scrub';
+import { createArtifactVocabulary } from './build-config';
 
 // Vocabulary tokens aligned to their word length. `scrubBuffer` throws if any
 // token has a different byte length from its word.
@@ -69,14 +70,42 @@ describe('scrubJavaScript', () => {
     // the source text doesn't have literal 'scramjet'.
     expect(out).not.toContain('scramjet');
   });
-  it('preserves protected external literals (nightwisp.me) while still scrubbing bare wisp', () => {
+  it('leaves external hosts alone when they contain no artifact word', () => {
+    // `wisp` is not an artifact word, so the fallback host survives without
+    // any protection-list entry. Uses the real vocabulary: any regression
+    // that re-adds an overlapping artifact word fails loudly here.
+    const vocab = createArtifactVocabulary('test-seed', 0);
     const src =
       'const host = "nightwisp.me"; const t = "wisp transport";';
-    const out = scrubJavaScript(src, alignedVocab);
-    // The load-bearing external host must survive verbatim...
+    const out = scrubJavaScript(src, vocab);
     expect(out).toContain('nightwisp.me');
-    // ...but an unrelated bare `wisp` token is still scrubbed.
-    expect(out).toContain('CCCC transport');
-    expect(out).not.toMatch(/"wisp transport"/);
+    expect(out).toContain('wisp transport');
+  });
+  it('scrubs protected-looking display labels and code identifiers (detector gate)', () => {
+    // Static detectors match case-insensitively, so NO casing of a forbidden
+    // word may survive in served bytes — not even inside larger identifiers
+    // (`ScramjetClient`) or user-facing labels (`<option>Scramjet`). This is
+    // the exact residual class found in dist (s.js/api.js/inject.js/bundled.js,
+    // core + polyfills chunks, settings/terms HTML, sw.js).
+    const vocab = createArtifactVocabulary('test-seed', 0);
+    const src = [
+      'export { ScramjetClient, ScramjetFetchHandler };',
+      'installScramjetProxyContext(controller, adapter);',
+      'await this.loadScramjetWasm();',
+      'new LibcurlClient();',
+      '<option value=sj>Scramjet</option>',
+      '<li>Full web proxy functionality (Scramjet & Ultraviolet)</li>',
+      '{id:"skr4nqB",label:"Libcurl"},{id:"uy3Lgw",label:"Pulsar"}',
+      '"Epoxy TLS"',
+    ].join('\n');
+    const out = scrubJavaScript(src, vocab);
+    expect(out.toLowerCase()).not.toContain('scramjet');
+    expect(out.toLowerCase()).not.toContain('libcurl');
+    expect(out.toLowerCase()).not.toContain('ultraviolet');
+    expect(out.toLowerCase()).not.toContain('pulsar');
+    expect(out.toLowerCase()).not.toContain('epoxy');
+    // Length-preserving: identifiers keep their width so cross-file
+    // references stay aligned (e.g. `ScramjetClient` → 14-char token + `Client`).
+    expect(out.length).toBe(src.length);
   });
 });
